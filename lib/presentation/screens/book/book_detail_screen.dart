@@ -7,6 +7,7 @@ import 'package:library_management/data/services/review_service.dart';
 import 'package:library_management/data/models/book_model.dart';
 import 'package:library_management/data/models/review_model.dart';
 import 'package:library_management/utils/image_helper.dart';
+import 'package:library_management/utils/error_localization.dart';
 import 'package:library_management/presentation/widgets/star_rating.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -174,9 +175,10 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
       }
     } catch (e) {
       if (!mounted) return;
+      final errorMessage = ErrorLocalization.getLocalizedErrorMessage(e);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('借阅失败: $e'),
+          content: Text('借阅失败: $errorMessage'),
           backgroundColor: Colors.red,
         ),
       );
@@ -226,8 +228,9 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
       }
     } catch (e) {
       if (!mounted) return;
+      final errorMessage = ErrorLocalization.getLocalizedErrorMessage(e);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('操作失败: $e')),
+        SnackBar(content: Text('操作失败: $errorMessage')),
       );
     }
   }
@@ -263,8 +266,9 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
       }
     } catch (e) {
       if (!mounted) return;
+      final errorMessage = ErrorLocalization.getLocalizedErrorMessage(e);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('提交评论失败: $e')),
+        SnackBar(content: Text('提交评论失败: $errorMessage')),
       );
     } finally {
       if (mounted) {
@@ -319,8 +323,9 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
       }
     } catch (e) {
       if (!mounted) return;
+      final errorMessage = ErrorLocalization.getLocalizedErrorMessage(e);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('删除评论失败: $e')),
+        SnackBar(content: Text('删除评论失败: $errorMessage')),
       );
     } finally {
       if (mounted) {

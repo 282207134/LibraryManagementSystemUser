@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:library_management/data/services/auth_service.dart';
+import 'package:library_management/utils/error_localization.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -148,34 +149,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
     } catch (e) {
       if (!mounted) return;
       
-      String errorMessage = '注册失败，请重试';
-      final errorString = e.toString().toLowerCase();
-      
-      // 处理邮件频率限制错误
-      if (errorString.contains('rate limit') || 
-          errorString.contains('email rate limit') ||
-          errorString.contains('over_email_send_rate_limit') ||
-          errorString.contains('429')) {
-        errorMessage = '邮件发送频率过高，请稍后再试\n\n建议：\n• 等待 5-10 分钟后重试\n• 或使用其他邮箱地址注册\n• 如该邮箱已注册，请直接登录';
-      } 
-      // 处理邮箱已存在错误
-      else if (errorString.contains('already registered') ||
-               errorString.contains('user already exists') ||
-               errorString.contains('already exists')) {
-        errorMessage = '该邮箱已被注册，请直接登录';
-      }
-      // 处理其他错误
-      else if (e.toString().isNotEmpty) {
-        // 提取错误消息，移除异常类型前缀
-        errorMessage = e.toString()
-            .replaceAll('Exception: ', '')
-            .replaceAll('AuthApiException: ', '')
-            .replaceAll('AuthException: ', '');
-      }
+      final errorMessage = ErrorLocalization.getLocalizedErrorMessage(e);
       
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(errorMessage),
+          content: Text('注册失败: $errorMessage'),
           backgroundColor: Colors.red,
           duration: const Duration(seconds: 4),
         ),

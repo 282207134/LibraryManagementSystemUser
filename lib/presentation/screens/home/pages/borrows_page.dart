@@ -4,6 +4,7 @@ import 'package:library_management/data/services/borrowing_service.dart';
 import 'package:library_management/data/services/auth_service.dart';
 import 'package:library_management/data/models/borrow_record_model.dart';
 import 'package:library_management/utils/image_helper.dart';
+import 'package:library_management/utils/error_localization.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 class BorrowsPage extends StatefulWidget {
@@ -122,9 +123,10 @@ class _BorrowsPageState extends State<BorrowsPage> with SingleTickerProviderStat
       }
     } catch (e) {
       if (!mounted) return;
+      final errorMessage = ErrorLocalization.getLocalizedErrorMessage(e);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('归还失败: $e'),
+          content: Text('归还失败: $errorMessage'),
           backgroundColor: Colors.red,
         ),
       );

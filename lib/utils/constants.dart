@@ -67,13 +67,13 @@ class AppConstants {
 }
 
 class ErrorMessages {
-  static const String networkError = 'Network error. Please check your connection.';
-  static const String serverError = 'Server error. Please try again later.';
-  static const String unauthorizedError = 'Unauthorized. Please login again.';
-  static const String forbiddenError = 'You do not have permission to access this resource.';
-  static const String notFoundError = 'The requested resource was not found.';
-  static const String validationError = 'Please check your input.';
-  static const String unknownError = 'An unknown error occurred.';
+  static const String networkError = '网络连接失败，请检查网络设置';
+  static const String serverError = '服务器错误，请稍后重试';
+  static const String unauthorizedError = '未授权，请重新登录';
+  static const String forbiddenError = '没有权限访问此资源';
+  static const String notFoundError = '请求的资源不存在';
+  static const String validationError = '请求参数错误，请检查输入';
+  static const String unknownError = '发生未知错误';
 
   static String getErrorMessage(int? statusCode) {
     switch (statusCode) {
@@ -96,26 +96,26 @@ class ErrorMessages {
 }
 
 class SuccessMessages {
-  static const String loginSuccess = 'Login successful!';
-  static const String registerSuccess = 'Registration successful!';
-  static const String logoutSuccess = 'Logout successful!';
-  static const String borrowSuccess = 'Book borrowed successfully!';
-  static const String returnSuccess = 'Book returned successfully!';
-  static const String renewSuccess = 'Book renewed successfully!';
-  static const String updateSuccess = 'Updated successfully!';
-  static const String deleteSuccess = 'Deleted successfully!';
+  static const String loginSuccess = '登录成功！';
+  static const String registerSuccess = '注册成功！';
+  static const String logoutSuccess = '退出登录成功！';
+  static const String borrowSuccess = '借阅成功！';
+  static const String returnSuccess = '归还成功！';
+  static const String renewSuccess = '续借成功！';
+  static const String updateSuccess = '更新成功！';
+  static const String deleteSuccess = '删除成功！';
 }
 
 class ValidationMessages {
-  static const String emptyUsername = 'Username cannot be empty';
-  static const String emptyEmail = 'Email cannot be empty';
-  static const String emptyPassword = 'Password cannot be empty';
-  static const String emptyPhone = 'Phone cannot be empty';
-  static const String emptyStudentId = 'Student ID cannot be empty';
-  static const String invalidEmail = 'Please enter a valid email address';
-  static const String invalidPhone = 'Please enter a valid phone number';
-  static const String passwordTooShort = 'Password must be at least 8 characters';
-  static const String passwordMismatch = 'Passwords do not match';
-  static const String usernameTooShort = 'Username must be at least 3 characters';
-  static const String usernameTooLong = 'Username cannot exceed 20 characters';
+  static const String emptyUsername = '用户名不能为空';
+  static const String emptyEmail = '邮箱不能为空';
+  static const String emptyPassword = '密码不能为空';
+  static const String emptyPhone = '手机号不能为空';
+  static const String emptyStudentId = '学号不能为空';
+  static const String invalidEmail = '请输入有效的邮箱地址';
+  static const String invalidPhone = '请输入有效的手机号码';
+  static const String passwordTooShort = '密码至少需要8个字符';
+  static const String passwordMismatch = '密码不匹配';
+  static const String usernameTooShort = '用户名至少需要3个字符';
+  static const String usernameTooLong = '用户名不能超过20个字符';
 }

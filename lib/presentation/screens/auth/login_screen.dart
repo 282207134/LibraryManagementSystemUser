@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:library_management/data/services/auth_service.dart';
+import 'package:library_management/utils/error_localization.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -58,9 +59,10 @@ class _LoginScreenState extends State<LoginScreen> {
     } catch (e) {
       if (!mounted) return;
       
+      final errorMessage = ErrorLocalization.getLocalizedErrorMessage(e);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('登录失败: ${e.toString()}'),
+          content: Text('登录失败: $errorMessage'),
           backgroundColor: Colors.red,
         ),
       );
@@ -130,9 +132,10 @@ class _LoginScreenState extends State<LoginScreen> {
     } catch (e) {
       if (!mounted) return;
 
+      final errorMessage = ErrorLocalization.getLocalizedErrorMessage(e);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('发送失败: $e'),
+          content: Text('发送失败: $errorMessage'),
           backgroundColor: Colors.red,
         ),
       );
