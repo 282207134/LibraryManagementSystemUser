@@ -1,7 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
 
-part 'api_response.g.dart';
-
 @JsonSerializable(genericArgumentFactories: true)
 class ApiResponse<T> {
   final int code;
@@ -22,10 +20,19 @@ class ApiResponse<T> {
     Map<String, dynamic> json,
     T Function(Object?) fromJsonT,
   ) =>
-      _$ApiResponseFromJson(json, fromJsonT);
+      ApiResponse(
+        code: json['code'] as int? ?? 0,
+        message: json['message'] as String? ?? '',
+        data: json['data'] != null ? fromJsonT(json['data']) : null,
+        timestamp: json['timestamp'] as int?,
+      );
 
-  Map<String, dynamic> toJson(Object? Function(T) toJsonT) =>
-      _$ApiResponseToJson(this, toJsonT);
+  Map<String, dynamic> toJson(Object? Function(T) toJsonT) => {
+        'code': code,
+        'message': message,
+        'data': data != null ? toJsonT(data as T) : null,
+        'timestamp': timestamp,
+      };
 }
 
 class ApiException implements Exception {

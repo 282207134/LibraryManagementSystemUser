@@ -1,7 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
 
-part 'category_model.g.dart';
-
 @JsonSerializable()
 class Category {
   final String id;
@@ -20,10 +18,23 @@ class Category {
     required this.createdAt,
   });
 
-  factory Category.fromJson(Map<String, dynamic> json) =>
-      _$CategoryFromJson(json);
+  factory Category.fromJson(Map<String, dynamic> json) => Category(
+        id: json['id'] as String? ?? '',
+        name: json['name'] as String? ?? '',
+        description: json['description'] as String?,
+        icon: json['icon'] as String?,
+        bookCount: json['book_count'] as int?,
+        createdAt: json['created_at'] as String? ?? '',
+      );
 
-  Map<String, dynamic> toJson() => _$CategoryToJson(this);
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'description': description,
+        'icon': icon,
+        'book_count': bookCount,
+        'created_at': createdAt,
+      };
 
   Category copyWith({
     String? id,

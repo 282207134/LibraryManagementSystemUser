@@ -1,7 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
 
-part 'book_model.g.dart';
-
 @JsonSerializable(
   explicitToJson: true,
   includeIfNull: false,
@@ -117,7 +115,23 @@ class Book {
     );
   }
 
-  Map<String, dynamic> toJson() => _$BookToJson(this);
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'isbn': isbn,
+        'title': title,
+        'subtitle': subtitle,
+        'author': author,
+        'translator': translator,
+        'publisher': publisher,
+        'publication_year': publicationYear,
+        'category': category,
+        'description': description,
+        'quantity': quantity,
+        'available_quantity': availableQuantity,
+        'cover_image_url': coverImageUrl,
+        'created_at': createdAt,
+        'updated_at': updatedAt,
+      };
 
   Book copyWith({
     String? id,

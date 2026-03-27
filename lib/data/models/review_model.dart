@@ -1,7 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
 
-part 'review_model.g.dart';
-
 @JsonSerializable()
 class Review {
   final String id;
@@ -34,9 +32,25 @@ class Review {
     this.userFullName,
   });
 
-  factory Review.fromJson(Map<String, dynamic> json) => _$ReviewFromJson(json);
+  factory Review.fromJson(Map<String, dynamic> json) => Review(
+        id: json['id'] as String? ?? '',
+        bookId: json['book_id'] as String? ?? '',
+        userId: json['user_id'] as String? ?? '',
+        rating: json['rating'] as int? ?? 0,
+        comment: json['comment'] as String?,
+        createdAt: json['created_at'] as String?,
+        updatedAt: json['updated_at'] as String?,
+      );
 
-  Map<String, dynamic> toJson() => _$ReviewToJson(this);
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'book_id': bookId,
+        'user_id': userId,
+        'rating': rating,
+        'comment': comment,
+        'created_at': createdAt,
+        'updated_at': updatedAt,
+      };
 }
 
 @JsonSerializable()
@@ -54,10 +68,20 @@ class BookRatingStats {
     required this.ratingDistribution,
   });
 
-  factory BookRatingStats.fromJson(Map<String, dynamic> json) =>
-      _$BookRatingStatsFromJson(json);
+  factory BookRatingStats.fromJson(Map<String, dynamic> json) => BookRatingStats(
+        averageRating: json['average_rating'] as double? ?? 0.0,
+        totalReviews: json['total_reviews'] as int? ?? 0,
+        ratingDistribution: (json['rating_distribution'] as List?)
+                ?.map((e) => RatingDistribution.fromJson(e as Map<String, dynamic>))
+                .toList() ??
+            [],
+      );
 
-  Map<String, dynamic> toJson() => _$BookRatingStatsToJson(this);
+  Map<String, dynamic> toJson() => {
+        'average_rating': averageRating,
+        'total_reviews': totalReviews,
+        'rating_distribution': ratingDistribution.map((e) => e.toJson()).toList(),
+      };
 }
 
 @JsonSerializable()
@@ -70,9 +94,14 @@ class RatingDistribution {
     required this.count,
   });
 
-  factory RatingDistribution.fromJson(Map<String, dynamic> json) =>
-      _$RatingDistributionFromJson(json);
+  factory RatingDistribution.fromJson(Map<String, dynamic> json) => RatingDistribution(
+        rating: json['rating'] as int? ?? 0,
+        count: json['count'] as int? ?? 0,
+      );
 
-  Map<String, dynamic> toJson() => _$RatingDistributionToJson(this);
+  Map<String, dynamic> toJson() => {
+        'rating': rating,
+        'count': count,
+      };
 }
 

@@ -1,8 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:library_management/data/models/book_model.dart';
 
-part 'borrow_record_model.g.dart';
-
 @JsonSerializable()
 class BorrowRecord {
   final String id;
@@ -74,7 +72,18 @@ class BorrowRecord {
     );
   }
 
-  Map<String, dynamic> toJson() => _$BorrowRecordToJson(this);
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'user_id': userId,
+        'book_id': bookId,
+        'borrowed_at': borrowedAt,
+        'due_date': dueDate,
+        'returned_at': returnedAt,
+        'status': status,
+        'renew_count': renewCount,
+        'fine': fine,
+        'books': book?.toJson(),
+      };
 
   BorrowRecord copyWith({
     String? id,

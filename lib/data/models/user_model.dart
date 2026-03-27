@@ -1,7 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
 
-part 'user_model.g.dart';
-
 @JsonSerializable()
 class User {
   final String id;
@@ -48,9 +46,51 @@ class User {
     this.lastLoginAt,
   });
 
-  factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
+  factory User.fromJson(Map<String, dynamic> json) => User(
+        id: json['id'] as String? ?? '',
+        username: json['username'] as String? ?? '',
+        email: json['email'] as String? ?? '',
+        phone: json['phone'] as String?,
+        avatar: json['avatar'] as String?,
+        role: json['role'] as String? ?? '',
+        studentId: json['student_id'] as String?,
+        department: json['department'] as String?,
+        realName: json['real_name'] as String?,
+        gender: json['gender'] as String?,
+        birthDate: json['birth_date'] as String?,
+        address: json['address'] as String?,
+        borrowLimit: json['borrow_limit'] as int? ?? 0,
+        currentBorrowCount: json['current_borrow_count'] as int? ?? 0,
+        totalBorrowCount: json['total_borrow_count'] as int?,
+        creditScore: json['credit_score'] as int?,
+        status: json['status'] as String? ?? '',
+        createdAt: json['created_at'] as String? ?? '',
+        updatedAt: json['updated_at'] as String?,
+        lastLoginAt: json['last_login_at'] as String?,
+      );
 
-  Map<String, dynamic> toJson() => _$UserToJson(this);
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'username': username,
+        'email': email,
+        'phone': phone,
+        'avatar': avatar,
+        'role': role,
+        'student_id': studentId,
+        'department': department,
+        'real_name': realName,
+        'gender': gender,
+        'birth_date': birthDate,
+        'address': address,
+        'borrow_limit': borrowLimit,
+        'current_borrow_count': currentBorrowCount,
+        'total_borrow_count': totalBorrowCount,
+        'credit_score': creditScore,
+        'status': status,
+        'created_at': createdAt,
+        'updated_at': updatedAt,
+        'last_login_at': lastLoginAt,
+      };
 
   User copyWith({
     String? id,
