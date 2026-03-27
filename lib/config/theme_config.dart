@@ -199,6 +199,33 @@ class ThemeConfig {
         ),
       ),
 
+      textSelectionTheme: const TextSelectionThemeData(
+        cursorColor: AppColors.primary,
+        selectionColor: Color(0x552196F3),
+        selectionHandleColor: AppColors.primary,
+      ),
+
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: AppColors.darkCardBackground,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: AppColors.darkDivider),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: AppColors.primary, width: 2),
+        ),
+        hintStyle: const TextStyle(color: AppColors.darkTextHint),
+        labelStyle: const TextStyle(color: AppColors.darkTextSecondary),
+        floatingLabelStyle: const TextStyle(color: AppColors.primary),
+        helperStyle: const TextStyle(color: AppColors.darkTextHint),
+        errorStyle: const TextStyle(color: AppColors.error),
+        prefixIconColor: AppColors.darkTextSecondary,
+        suffixIconColor: AppColors.darkTextSecondary,
+      ),
+
       textTheme: TextTheme(
         displayLarge: const TextStyle(
           fontSize: 32,
