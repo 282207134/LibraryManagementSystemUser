@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:library_management/config/app_config.dart';
 import 'package:library_management/config/router_config.dart';
 import 'package:library_management/config/theme_config.dart';
+import 'package:library_management/providers/theme_mode_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() async {
@@ -26,12 +27,13 @@ class LibraryManagementApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
+    final themeMode = ref.watch(themeModeProvider);
 
     return MaterialApp.router(
       title: 'Library Management System',
       theme: ThemeConfig.lightTheme,
       darkTheme: ThemeConfig.darkTheme,
-      themeMode: ThemeMode.system,
+      themeMode: themeMode,
       routerConfig: router,
       debugShowCheckedModeBanner: false,
     );

@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:library_management/data/services/auth_service.dart';
 import 'package:library_management/data/services/borrowing_service.dart';
 import 'package:library_management/config/app_config.dart';
+import 'package:library_management/providers/theme_mode_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-class ProfilePage extends StatefulWidget {
+class ProfilePage extends ConsumerStatefulWidget {
   const ProfilePage({Key? key}) : super(key: key);
 
   @override
-  State<ProfilePage> createState() => _ProfilePageState();
+  ConsumerState<ProfilePage> createState() => _ProfilePageState();
 }
 
-class _ProfilePageState extends State<ProfilePage> {
+class _ProfilePageState extends ConsumerState<ProfilePage> {
   final _authService = AuthService();
   final _borrowingService = BorrowingService();
   
@@ -164,8 +166,79 @@ class _ProfilePageState extends State<ProfilePage> {
     return '未设置姓名';
   }
 
+  String _themeModeLabel(ThemeMode mode) {
+    switch (mode) {
+      case ThemeMode.system:
+        return '跟随系统';
+      case ThemeMode.light:
+        return '浅色';
+      case ThemeMode.dark:
+        return '深色';
+    }
+  }
+
+  Future<void> _showThemeModePicker() async {
+    final current = ref.read(themeModeProvider);
+
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 8),
+                const Text(
+                  '主题模式',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                RadioListTile<ThemeMode>(
+                  value: ThemeMode.system,
+                  groupValue: current,
+                  title: const Text('跟随系统'),
+                  onChanged: (v) async {
+                    if (v == null) return;
+                    await ref.read(themeModeProvider.notifier).setThemeMode(v);
+                    if (context.mounted) Navigator.pop(context);
+                  },
+                ),
+                RadioListTile<ThemeMode>(
+                  value: ThemeMode.light,
+                  groupValue: current,
+                  title: const Text('浅色'),
+                  onChanged: (v) async {
+                    if (v == null) return;
+                    await ref.read(themeModeProvider.notifier).setThemeMode(v);
+                    if (context.mounted) Navigator.pop(context);
+                  },
+                ),
+                RadioListTile<ThemeMode>(
+                  value: ThemeMode.dark,
+                  groupValue: current,
+                  title: const Text('深色'),
+                  onChanged: (v) async {
+                    if (v == null) return;
+                    await ref.read(themeModeProvider.notifier).setThemeMode(v);
+                    if (context.mounted) Navigator.pop(context);
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final themeMode = ref.watch(themeModeProvider);
+
     if (_loading) {
       return Scaffold(
         appBar: AppBar(
@@ -344,6 +417,13 @@ class _ProfilePageState extends State<ProfilePage> {
                 children: [
                   _buildMenuTile(
                     context,
+                    Icons.palette_outlined,
+                    '主题模式',
+                    _showThemeModePicker,
+                    subtitle: _themeModeLabel(themeMode),
+                  ),
+                  _buildMenuTile(
+                    context,
                     Icons.edit,
                     '编辑资料',
                     () {
@@ -429,12 +509,14 @@ class _ProfilePageState extends State<ProfilePage> {
     String title,
     VoidCallback onTap, {
     Color? color,
+    String? subtitle,
   }) {
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
         leading: Icon(icon, color: color),
         title: Text(title, style: TextStyle(color: color)),
+        subtitle: subtitle == null ? null : Text(subtitle),
         trailing: const Icon(Icons.arrow_forward_ios, size: 16),
         onTap: onTap,
       ),
