@@ -50,7 +50,7 @@ class BookService {
         .maybeSingle();
 
     if (response == null) return null;
-    return Book.fromJson(response as Map<String, dynamic>);
+    return Book.fromJson(response);
   }
 
   // 搜索图书
@@ -64,6 +64,74 @@ class BookService {
     return (response as List)
         .map((json) => Book.fromJson(json as Map<String, dynamic>))
         .toList();
+  }
+
+  Future<Book> createBook({
+    required String title,
+    required String author,
+    String? isbn,
+    String? publisher,
+    int? publicationYear,
+    String? category,
+    String? description,
+    required int quantity,
+    String? coverImageUrl,
+  }) async {
+    final payload = <String, dynamic>{
+      'title': title.trim(),
+      'author': author.trim(),
+      'isbn': isbn?.trim().isEmpty == true ? null : isbn?.trim(),
+      'publisher': publisher?.trim().isEmpty == true ? null : publisher?.trim(),
+      'publication_year': publicationYear,
+      'category': category?.trim().isEmpty == true ? null : category?.trim(),
+      'description': description?.trim().isEmpty == true ? null : description?.trim(),
+      'quantity': quantity,
+      'available_quantity': quantity,
+      'cover_image_url': coverImageUrl?.trim().isEmpty == true ? null : coverImageUrl?.trim(),
+    };
+
+    final response = await _supabase.from('books').insert(payload).select('*').single();
+    return Book.fromJson(response);
+  }
+
+  Future<Book> updateBook({
+    required String id,
+    required String title,
+    required String author,
+    String? isbn,
+    String? publisher,
+    int? publicationYear,
+    String? category,
+    String? description,
+    required int quantity,
+    required int availableQuantity,
+    String? coverImageUrl,
+  }) async {
+    final payload = <String, dynamic>{
+      'title': title.trim(),
+      'author': author.trim(),
+      'isbn': isbn?.trim().isEmpty == true ? null : isbn?.trim(),
+      'publisher': publisher?.trim().isEmpty == true ? null : publisher?.trim(),
+      'publication_year': publicationYear,
+      'category': category?.trim().isEmpty == true ? null : category?.trim(),
+      'description': description?.trim().isEmpty == true ? null : description?.trim(),
+      'quantity': quantity,
+      'available_quantity': availableQuantity,
+      'cover_image_url': coverImageUrl?.trim().isEmpty == true ? null : coverImageUrl?.trim(),
+      'updated_at': DateTime.now().toIso8601String(),
+    };
+
+    final response = await _supabase
+        .from('books')
+        .update(payload)
+        .eq('id', id)
+        .select('*')
+        .single();
+    return Book.fromJson(response);
+  }
+
+  Future<void> deleteBook(String id) async {
+    await _supabase.from('books').delete().eq('id', id);
   }
 
   // 获取分类列表
