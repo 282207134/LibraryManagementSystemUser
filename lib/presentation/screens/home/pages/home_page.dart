@@ -1,20 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:library_management/data/services/home_service.dart';
 import 'package:library_management/data/models/book_model.dart';
+import 'package:library_management/providers/theme_mode_provider.dart';
 import 'package:library_management/utils/image_helper.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
-class HomePage extends StatefulWidget {
+class HomePage extends ConsumerStatefulWidget {
   final VoidCallback? onSearchTap;
   
   const HomePage({Key? key, this.onSearchTap}) : super(key: key);
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  ConsumerState<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends ConsumerState<HomePage> {
   final _homeService = HomeService();
   List<Book> _recommendedBooks = [];
   List<Book> _popularBooks = [];
@@ -107,6 +109,10 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final themeMode = ref.watch(themeModeProvider);
+
     if (_loading) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
@@ -117,8 +123,13 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: const Text('图书馆'),
         elevation: 0,
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
+        actions: [
+          IconButton(
+            tooltip: _themeModeLabel(themeMode),
+            onPressed: () => _cycleThemeMode(themeMode),
+            icon: Icon(_themeModeIcon(themeMode)),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -138,7 +149,7 @@ class _HomePageState extends State<HomePage> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       filled: true,
-                      fillColor: Colors.grey[100],
+                      fillColor: colorScheme.surface,
                     ),
                   ),
                 ),
@@ -277,9 +288,11 @@ class _HomePageState extends State<HomePage> {
                             });
                             _loadCategoryBooks(category);
                           },
-                          selectedColor: Colors.blue,
+                          selectedColor: colorScheme.primary,
                           labelStyle: TextStyle(
-                            color: isSelected ? Colors.white : Colors.black87,
+                            color: isSelected
+                                ? colorScheme.onPrimary
+                                : colorScheme.onSurface,
                           ),
                         );
                       }).toList(),
@@ -322,7 +335,7 @@ class _HomePageState extends State<HomePage> {
         margin: const EdgeInsets.symmetric(horizontal: 8),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          color: Colors.white,
+          color: Theme.of(context).cardColor,
           boxShadow: [
             BoxShadow(
               color: Colors.grey.withOpacity(0.3),
@@ -375,9 +388,10 @@ class _HomePageState extends State<HomePage> {
                   children: [
                     Text(
                       book.title,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -385,7 +399,10 @@ class _HomePageState extends State<HomePage> {
                     const SizedBox(height: 8),
                     Text(
                       book.author,
-                      style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        fontSize: 12,
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -394,7 +411,7 @@ class _HomePageState extends State<HomePage> {
                       Text(
                         book.category!,
                         style: TextStyle(
-                          color: Colors.blue[600],
+                          color: Theme.of(context).colorScheme.primary,
                           fontSize: 11,
                         ),
                       ),
@@ -416,9 +433,9 @@ class _HomePageState extends State<HomePage> {
         margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.grey[300]!),
+          border: Border.all(color: Theme.of(context).dividerColor),
         ),
         child: Row(
           children: [
@@ -433,7 +450,9 @@ class _HomePageState extends State<HomePage> {
                 child: Text(
                   '$rank',
                   style: TextStyle(
-                    color: rank <= 3 ? Colors.white : Colors.black87,
+                    color: rank <= 3
+                        ? Colors.white
+                        : Theme.of(context).colorScheme.onSurface,
                     fontWeight: FontWeight.bold,
                     fontSize: 12,
                   ),
@@ -447,13 +466,20 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   Text(
                     book.title,
-                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                   Text(
                     book.author,
-                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -501,9 +527,10 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   Text(
                     book.title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -511,7 +538,10 @@ class _HomePageState extends State<HomePage> {
                   const SizedBox(height: 4),
                   Text(
                     book.author,
-                    style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -560,5 +590,42 @@ class _HomePageState extends State<HomePage> {
         onTap: () => context.push('/book/${book.id}'),
       ),
     );
+  }
+
+  Future<void> _cycleThemeMode(ThemeMode currentMode) async {
+    final notifier = ref.read(themeModeProvider.notifier);
+    switch (currentMode) {
+      case ThemeMode.system:
+        await notifier.setThemeMode(ThemeMode.light);
+        break;
+      case ThemeMode.light:
+        await notifier.setThemeMode(ThemeMode.dark);
+        break;
+      case ThemeMode.dark:
+        await notifier.setThemeMode(ThemeMode.system);
+        break;
+    }
+  }
+
+  IconData _themeModeIcon(ThemeMode mode) {
+    switch (mode) {
+      case ThemeMode.light:
+        return Icons.light_mode;
+      case ThemeMode.dark:
+        return Icons.dark_mode;
+      case ThemeMode.system:
+        return Icons.contrast;
+    }
+  }
+
+  String _themeModeLabel(ThemeMode mode) {
+    switch (mode) {
+      case ThemeMode.light:
+        return '浅色模式（点击切换）';
+      case ThemeMode.dark:
+        return '深色模式（点击切换）';
+      case ThemeMode.system:
+        return '跟随系统（点击切换）';
+    }
   }
 }
