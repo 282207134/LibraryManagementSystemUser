@@ -72,12 +72,16 @@ class _BooksPageState extends State<BooksPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('图书浏览'),
         elevation: 0,
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
+        backgroundColor: isDark ? colorScheme.surface : null,
+        foregroundColor: isDark ? colorScheme.onSurface : null,
       ),
       body: Column(
         children: [

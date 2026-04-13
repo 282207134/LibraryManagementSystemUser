@@ -146,18 +146,41 @@ class _BorrowsPageState extends State<BorrowsPage> with SingleTickerProviderStat
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('我的借阅'),
         elevation: 0,
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(text: '当前借阅'),
-            Tab(text: '历史记录'),
-          ],
+        backgroundColor: isDark ? colorScheme.surface : null,
+        foregroundColor: isDark ? colorScheme.onSurface : null,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(56),
+          child: Container(
+            margin: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: TabBar(
+              controller: _tabController,
+              indicatorSize: TabBarIndicatorSize.tab,
+              dividerColor: Colors.transparent,
+              labelColor: colorScheme.onPrimary,
+              unselectedLabelColor: colorScheme.onSurfaceVariant,
+              indicator: BoxDecoration(
+                color: colorScheme.primary,
+                borderRadius: BorderRadius.circular(9),
+              ),
+              tabs: const [
+                Tab(text: '当前借阅'),
+                Tab(text: '历史记录'),
+              ],
+            ),
+          ),
         ),
       ),
       body: _loading
@@ -225,6 +248,7 @@ class _BorrowsPageState extends State<BorrowsPage> with SingleTickerProviderStat
   }
 
   Widget _buildBorrowCard(BorrowRecord record, {required bool isCurrent}) {
+    final colorScheme = Theme.of(context).colorScheme;
     final book = record.book;
     final coverUrl = _coverImageUrls[record.bookId] ?? book?.coverImageUrl;
     final daysRemaining = _getDaysRemaining(record.dueDate);
@@ -323,7 +347,9 @@ class _BorrowsPageState extends State<BorrowsPage> with SingleTickerProviderStat
                                         : '-',
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color: isOverdue ? Colors.red : Colors.black87,
+                                  color: isOverdue
+                                      ? Colors.red
+                                      : colorScheme.onSurface,
                                 ),
                               ),
                             ],

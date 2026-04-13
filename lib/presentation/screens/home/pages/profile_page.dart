@@ -238,14 +238,17 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     final themeMode = ref.watch(themeModeProvider);
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
 
     if (_loading) {
       return Scaffold(
         appBar: AppBar(
           title: const Text('个人中心'),
           elevation: 0,
-          backgroundColor: Colors.blue,
-          foregroundColor: Colors.white,
+          backgroundColor: isDark ? colorScheme.surface : null,
+          foregroundColor: isDark ? colorScheme.onSurface : null,
         ),
         body: const Center(child: CircularProgressIndicator()),
       );
@@ -256,8 +259,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         appBar: AppBar(
           title: const Text('个人中心'),
           elevation: 0,
-          backgroundColor: Colors.blue,
-          foregroundColor: Colors.white,
+          backgroundColor: isDark ? colorScheme.surface : null,
+          foregroundColor: isDark ? colorScheme.onSurface : null,
         ),
         body: Center(
           child: Column(
@@ -281,8 +284,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       appBar: AppBar(
         title: const Text('个人中心'),
         elevation: 0,
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
+        backgroundColor: isDark ? colorScheme.surface : null,
+        foregroundColor: isDark ? colorScheme.onSurface : null,
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),

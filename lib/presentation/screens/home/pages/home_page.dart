@@ -112,6 +112,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final themeMode = ref.watch(themeModeProvider);
+    final isDark = theme.brightness == Brightness.dark;
 
     if (_loading) {
       return const Scaffold(
@@ -123,6 +124,8 @@ class _HomePageState extends ConsumerState<HomePage> {
       appBar: AppBar(
         title: const Text('图书馆'),
         elevation: 0,
+        backgroundColor: isDark ? colorScheme.surface : null,
+        foregroundColor: isDark ? colorScheme.onSurface : null,
         actions: [
           IconButton(
             tooltip: _themeModeLabel(themeMode),
@@ -194,18 +197,12 @@ class _HomePageState extends ConsumerState<HomePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Row(
-                      children: [
-                        Icon(Icons.local_fire_department, color: Colors.orange, size: 20),
-                        SizedBox(width: 4),
-                        Text(
-                          '🔥 人气排行榜',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
+                    const Text(
+                      '人气排行榜 🔥',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 12),
                     ..._popularBooks.asMap().entries.map((entry) {
@@ -226,28 +223,22 @@ class _HomePageState extends ConsumerState<HomePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Row(
-                      children: [
-                        Icon(Icons.book, color: Colors.green, size: 20),
-                        SizedBox(width: 4),
-                        Text(
-                          '📚 新上架',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
+                    const Text(
+                      '新上架',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 12),
                     SizedBox(
-                      height: 280,
+                      height: 250,
                       child: ListView.builder(
                         scrollDirection: Axis.horizontal,
                         itemCount: _newBooks.length,
                         itemBuilder: (context, index) {
                           return SizedBox(
-                            width: 120,
+                            width: 145,
                             child: _buildNewBookCard(_newBooks[index]),
                           );
                         },

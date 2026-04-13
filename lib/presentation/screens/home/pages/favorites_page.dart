@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:library_management/data/services/book_service.dart';
 import 'package:library_management/data/services/auth_service.dart';
 import 'package:library_management/data/models/book_model.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:library_management/config/app_config.dart';
 
 class FavoritesPage extends StatefulWidget {
@@ -95,10 +94,16 @@ class _FavoritesPageState extends State<FavoritesPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('我的收藏'),
         elevation: 0,
+        backgroundColor: isDark ? colorScheme.surface : null,
+        foregroundColor: isDark ? colorScheme.onSurface : null,
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
