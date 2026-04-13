@@ -82,7 +82,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             'id': response.user!.id,
             'email': _emailController.text.trim(),
             'full_name': _usernameController.text.trim(),
-            'role': 'customer', // 默认角色
+            'role': 'user',
           });
         } catch (profileError) {
           // 用户资料创建失败不影响注册，只在控制台记录
