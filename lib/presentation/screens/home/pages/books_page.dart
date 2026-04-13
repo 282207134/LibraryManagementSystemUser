@@ -91,15 +91,24 @@ class _BooksPageState extends State<BooksPage> {
               controller: _searchController,
               decoration: InputDecoration(
                 hintText: '搜索书名或作者...',
-                prefixIcon: const Icon(Icons.search),
+                hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+                prefixIcon: Icon(Icons.search, color: colorScheme.onSurfaceVariant),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: colorScheme.outlineVariant),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: colorScheme.primary, width: 1.5),
+                ),
                 filled: true,
-                fillColor: Colors.grey[100],
+                fillColor: colorScheme.surface,
                 suffixIcon: _searchQuery.isNotEmpty
                     ? IconButton(
-                        icon: const Icon(Icons.clear),
+                        icon: Icon(Icons.clear, color: colorScheme.onSurfaceVariant),
                         onPressed: () {
                           _searchController.clear();
                           _handleSearch('');
