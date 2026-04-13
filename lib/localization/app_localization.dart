@@ -182,6 +182,21 @@ class AppLocalization {
       AppLanguage.en: 'Theme Mode',
       AppLanguage.ja: 'テーマ',
     },
+    'theme_system': {
+      AppLanguage.zh: '跟随系统',
+      AppLanguage.en: 'System',
+      AppLanguage.ja: 'システム',
+    },
+    'theme_light': {
+      AppLanguage.zh: '浅色',
+      AppLanguage.en: 'Light',
+      AppLanguage.ja: 'ライト',
+    },
+    'theme_dark': {
+      AppLanguage.zh: '深色',
+      AppLanguage.en: 'Dark',
+      AppLanguage.ja: 'ダーク',
+    },
     'language': {
       AppLanguage.zh: '语言',
       AppLanguage.en: 'Language',

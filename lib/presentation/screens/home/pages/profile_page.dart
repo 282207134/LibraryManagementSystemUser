@@ -275,7 +275,15 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     if (dateString == null) return AppLocalization.tr('unknown');
     try {
       final date = DateTime.parse(dateString);
-      return '${date.year}年${date.month}月${date.day}日';
+      final language = AppLocalization.notifier.value;
+      switch (language) {
+        case AppLanguage.zh:
+          return '${date.year}年${date.month}月${date.day}日';
+        case AppLanguage.en:
+          return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+        case AppLanguage.ja:
+          return '${date.year}/${date.month}/${date.day}';
+      }
     } catch (e) {
       return dateString;
     }
@@ -330,12 +338,20 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   String _themeModeLabel(ThemeMode mode) {
     switch (mode) {
       case ThemeMode.system:
-        return 'System';
+        return AppLocalization.tr('theme_system');
       case ThemeMode.light:
-        return 'Light';
+        return AppLocalization.tr('theme_light');
       case ThemeMode.dark:
-        return 'Dark';
+        return AppLocalization.tr('theme_dark');
     }
+  }
+
+  String _roleLabel(dynamic rawRole) {
+    final role = (rawRole ?? '').toString().toLowerCase().trim();
+    if (role == 'admin' || rawRole == '管理员' || rawRole == '管理者') {
+      return AppLocalization.tr('admin_role');
+    }
+    return AppLocalization.tr('normal_user');
   }
 
   Future<void> _showLanguagePicker() async {
@@ -400,7 +416,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                 RadioListTile<ThemeMode>(
                   value: ThemeMode.system,
                   groupValue: current,
-                  title: const Text('System'),
+                  title: Text(AppLocalization.tr('theme_system')),
                   onChanged: (v) async {
                     if (v == null) return;
                     await ref.read(themeModeProvider.notifier).setThemeMode(v);
@@ -410,7 +426,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                 RadioListTile<ThemeMode>(
                   value: ThemeMode.light,
                   groupValue: current,
-                  title: const Text('Light'),
+                  title: Text(AppLocalization.tr('theme_light')),
                   onChanged: (v) async {
                     if (v == null) return;
                     await ref.read(themeModeProvider.notifier).setThemeMode(v);
@@ -420,7 +436,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                 RadioListTile<ThemeMode>(
                   value: ThemeMode.dark,
                   groupValue: current,
-                  title: const Text('Dark'),
+                  title: Text(AppLocalization.tr('theme_dark')),
                   onChanged: (v) async {
                     if (v == null) return;
                     await ref.read(themeModeProvider.notifier).setThemeMode(v);
@@ -555,9 +571,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   _buildInfoRow(AppLocalization.tr('email_address'), _user!.email ?? AppLocalization.tr('unknown')),
                   _buildInfoRow(
                     AppLocalization.tr('user_role'),
-                    _userProfile?['role'] == 'admin'
-                        ? AppLocalization.tr('admin_role')
-                        : AppLocalization.tr('normal_user'),
+                    _roleLabel(_userProfile?['role']),
                   ),
                   if (_userProfile?['member_since'] != null)
                     _buildInfoRow(
