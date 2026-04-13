@@ -51,7 +51,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           .maybeSingle();
 
       if (profileResponse != null) {
-        setState(() => _userProfile = profileResponse as Map<String, dynamic>);
+        setState(() => _userProfile = profileResponse);
       }
 
       // 获取借阅统计
@@ -107,6 +107,166 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       if (mounted) {
         context.go('/login');
       }
+    }
+  }
+
+  Future<void> _handleEditProfile() async {
+    final user = _user;
+    if (user == null) return;
+
+    final nameController = TextEditingController(text: _getFullName());
+    final phoneController = TextEditingController(
+      text: _userProfile?['phone'] as String? ?? '',
+    );
+    final addressController = TextEditingController(
+      text: _userProfile?['address'] as String? ?? '',
+    );
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('编辑资料'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(labelText: '姓名'),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: phoneController,
+                decoration: const InputDecoration(labelText: '电话'),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: addressController,
+                decoration: const InputDecoration(labelText: '地址'),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('取消'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('保存'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    try {
+      await AppConfig.supabase.from('users').update({
+        'full_name': nameController.text.trim(),
+        'phone': phoneController.text.trim().isEmpty ? null : phoneController.text.trim(),
+        'address': addressController.text.trim().isEmpty ? null : addressController.text.trim(),
+      }).eq('id', user.id);
+
+      await _loadUserProfile();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('资料更新成功')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('更新失败: $e')),
+      );
+    }
+  }
+
+  Future<void> _handleChangePassword() async {
+    final email = _user?.email;
+    if (email == null || email.isEmpty) return;
+
+    final currentController = TextEditingController();
+    final newController = TextEditingController();
+    final confirmController = TextEditingController();
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('修改密码'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: currentController,
+                obscureText: true,
+                decoration: const InputDecoration(labelText: '当前密码'),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: newController,
+                obscureText: true,
+                decoration: const InputDecoration(labelText: '新密码（至少6位）'),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: confirmController,
+                obscureText: true,
+                decoration: const InputDecoration(labelText: '确认新密码'),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('取消'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('更新'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    final currentPassword = currentController.text;
+    final newPassword = newController.text;
+    final confirmPassword = confirmController.text;
+
+    if (newPassword.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('新密码长度至少为6位')),
+      );
+      return;
+    }
+
+    if (newPassword != confirmPassword) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('两次输入的新密码不一致')),
+      );
+      return;
+    }
+
+    try {
+      await _authService.signInWithEmail(email: email, password: currentPassword);
+      await AppConfig.supabase.auth.updateUser(UserAttributes(password: newPassword));
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('密码修改成功，请重新登录')),
+      );
+      await _authService.signOut();
+      if (!mounted) return;
+      context.go('/login');
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('修改密码失败: $e')),
+      );
     }
   }
 
@@ -286,16 +446,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         elevation: 0,
         backgroundColor: isDark ? colorScheme.surface : null,
         foregroundColor: isDark ? colorScheme.onSurface : null,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('设置功能开发中')),
-              );
-            },
-          ),
-        ],
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -429,28 +579,22 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                     context,
                     Icons.edit,
                     '编辑资料',
-                    () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('编辑功能开发中')),
-                      );
-                    },
+                    _handleEditProfile,
                   ),
                   _buildMenuTile(
                     context,
                     Icons.lock,
                     '修改密码',
-                    () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('修改密码功能开发中')),
-                      );
-                    },
+                    _handleChangePassword,
                   ),
                   _buildMenuTile(
                     context,
                     Icons.history,
                     '借阅历史',
                     () {
-                      // 导航到借阅页面
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('请在“我的借阅”页面查看借阅历史')),
+                      );
                     },
                   ),
                   _buildMenuTile(
