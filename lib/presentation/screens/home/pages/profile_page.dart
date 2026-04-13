@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:library_management/data/services/auth_service.dart';
 import 'package:library_management/data/services/borrowing_service.dart';
 import 'package:library_management/config/app_config.dart';
+import 'package:library_management/localization/app_localization.dart';
 import 'package:library_management/providers/theme_mode_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -87,16 +88,16 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('退出登录'),
-        content: const Text('确定要退出登录吗？'),
+        title: Text(AppLocalization.tr('logout')),
+        content: Text(AppLocalization.tr('confirm')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('取消'),
+            child: Text(AppLocalization.tr('cancel')),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('确认'),
+            child: Text(AppLocalization.tr('confirm')),
           ),
         ],
       ),
@@ -125,24 +126,24 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('编辑资料'),
+        title: Text(AppLocalization.tr('edit_profile')),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: nameController,
-                decoration: const InputDecoration(labelText: '姓名'),
+                decoration: InputDecoration(labelText: AppLocalization.tr('name')),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: phoneController,
-                decoration: const InputDecoration(labelText: '电话'),
+                decoration: InputDecoration(labelText: AppLocalization.tr('phone')),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: addressController,
-                decoration: const InputDecoration(labelText: '地址'),
+                decoration: InputDecoration(labelText: AppLocalization.tr('address')),
               ),
             ],
           ),
@@ -150,11 +151,11 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('取消'),
+            child: Text(AppLocalization.tr('cancel')),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('保存'),
+            child: Text(AppLocalization.tr('save')),
           ),
         ],
       ),
@@ -172,12 +173,12 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       await _loadUserProfile();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('资料更新成功')),
+        SnackBar(content: Text(AppLocalization.tr('save'))),
       );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('更新失败: $e')),
+        SnackBar(content: Text('${AppLocalization.tr('operation_failed')}: $e')),
       );
     }
   }
@@ -193,7 +194,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('修改密码'),
+        title: Text(AppLocalization.tr('change_password')),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -201,19 +202,19 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
               TextField(
                 controller: currentController,
                 obscureText: true,
-                decoration: const InputDecoration(labelText: '当前密码'),
+                decoration: InputDecoration(labelText: AppLocalization.tr('password')),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: newController,
                 obscureText: true,
-                decoration: const InputDecoration(labelText: '新密码（至少6位）'),
+                decoration: InputDecoration(labelText: AppLocalization.tr('password')),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: confirmController,
                 obscureText: true,
-                decoration: const InputDecoration(labelText: '确认新密码'),
+                decoration: InputDecoration(labelText: AppLocalization.tr('confirm_password')),
               ),
             ],
           ),
@@ -221,11 +222,11 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('取消'),
+            child: Text(AppLocalization.tr('cancel')),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('更新'),
+            child: Text(AppLocalization.tr('update')),
           ),
         ],
       ),
@@ -239,14 +240,14 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
 
     if (newPassword.length < 6) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('新密码长度至少为6位')),
+        SnackBar(content: Text(AppLocalization.tr('password_length_error'))),
       );
       return;
     }
 
     if (newPassword != confirmPassword) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('两次输入的新密码不一致')),
+        SnackBar(content: Text(AppLocalization.tr('new_password_mismatch'))),
       );
       return;
     }
@@ -257,7 +258,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('密码修改成功，请重新登录')),
+        SnackBar(content: Text(AppLocalization.tr('password_changed_relogin'))),
       );
       await _authService.signOut();
       if (!mounted) return;
@@ -265,13 +266,13 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('修改密码失败: $e')),
+        SnackBar(content: Text('${AppLocalization.tr('operation_failed')}: $e')),
       );
     }
   }
 
   String _formatDate(String? dateString) {
-    if (dateString == null) return '未知';
+    if (dateString == null) return AppLocalization.tr('unknown');
     try {
       final date = DateTime.parse(dateString);
       return '${date.year}年${date.month}月${date.day}日';
@@ -323,18 +324,57 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     if (email != null && email.isNotEmpty) {
       return email;
     }
-    return '未设置姓名';
+    return AppLocalization.tr('not_set');
   }
 
   String _themeModeLabel(ThemeMode mode) {
     switch (mode) {
       case ThemeMode.system:
-        return '跟随系统';
+        return 'System';
       case ThemeMode.light:
-        return '浅色';
+        return 'Light';
       case ThemeMode.dark:
-        return '深色';
+        return 'Dark';
     }
+  }
+
+  Future<void> _showLanguagePicker() async {
+    final current = AppLocalization.notifier.value;
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 8),
+                Text(
+                  AppLocalization.tr('language'),
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                ...AppLanguage.values.map(
+                  (lang) => RadioListTile<AppLanguage>(
+                    value: lang,
+                    groupValue: current,
+                    title: Text(AppLocalization.languageLabel(lang)),
+                    onChanged: (v) async {
+                      if (v == null) return;
+                      await AppLocalization.setLanguage(v);
+                      if (context.mounted) Navigator.pop(context);
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   Future<void> _showThemeModePicker() async {
@@ -352,15 +392,15 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 8),
-                const Text(
-                  '主题模式',
+                Text(
+                  AppLocalization.tr('theme_mode'),
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
                 RadioListTile<ThemeMode>(
                   value: ThemeMode.system,
                   groupValue: current,
-                  title: const Text('跟随系统'),
+                  title: const Text('System'),
                   onChanged: (v) async {
                     if (v == null) return;
                     await ref.read(themeModeProvider.notifier).setThemeMode(v);
@@ -370,7 +410,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                 RadioListTile<ThemeMode>(
                   value: ThemeMode.light,
                   groupValue: current,
-                  title: const Text('浅色'),
+                  title: const Text('Light'),
                   onChanged: (v) async {
                     if (v == null) return;
                     await ref.read(themeModeProvider.notifier).setThemeMode(v);
@@ -380,7 +420,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                 RadioListTile<ThemeMode>(
                   value: ThemeMode.dark,
                   groupValue: current,
-                  title: const Text('深色'),
+                  title: const Text('Dark'),
                   onChanged: (v) async {
                     if (v == null) return;
                     await ref.read(themeModeProvider.notifier).setThemeMode(v);
@@ -405,7 +445,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     if (_loading) {
       return Scaffold(
         appBar: AppBar(
-          title: const Text('个人中心'),
+          title: Text(AppLocalization.tr('profile')),
           elevation: 0,
           backgroundColor: isDark ? colorScheme.surface : null,
           foregroundColor: isDark ? colorScheme.onSurface : null,
@@ -417,7 +457,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     if (_user == null) {
       return Scaffold(
         appBar: AppBar(
-          title: const Text('个人中心'),
+          title: Text(AppLocalization.tr('profile')),
           elevation: 0,
           backgroundColor: isDark ? colorScheme.surface : null,
           foregroundColor: isDark ? colorScheme.onSurface : null,
@@ -428,11 +468,11 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             children: [
               Icon(Icons.person_off, size: 64, color: Colors.grey),
               const SizedBox(height: 16),
-              const Text('未登录'),
+              Text(AppLocalization.tr('login')),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () => context.go('/login'),
-                child: const Text('去登录'),
+                child: Text(AppLocalization.tr('go_login')),
               ),
             ],
           ),
@@ -442,7 +482,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('个人中心'),
+        title: Text(AppLocalization.tr('profile')),
         elevation: 0,
         backgroundColor: isDark ? colorScheme.surface : null,
         foregroundColor: isDark ? colorScheme.onSurface : null,
@@ -481,17 +521,17 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    _user!.email ?? '未知邮箱',
+                    _user!.email ?? AppLocalization.tr('unknown'),
                     style: TextStyle(color: Colors.grey[600]),
                   ),
                   const SizedBox(height: 16),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      _buildStatCard('总借阅', '$_totalBorrows', Colors.blue),
-                      _buildStatCard('当前借阅', '$_currentBorrows', Colors.orange),
-                      _buildStatCard('历史借阅', '$_historyBorrows', Colors.green),
-                      _buildStatCard('我的收藏', '$_favoritesCount', Colors.purple),
+                      _buildStatCard(AppLocalization.tr('total_borrows'), '$_totalBorrows', Colors.blue),
+                      _buildStatCard(AppLocalization.tr('current_borrows'), '$_currentBorrows', Colors.orange),
+                      _buildStatCard(AppLocalization.tr('history_borrows'), '$_historyBorrows', Colors.green),
+                      _buildStatCard(AppLocalization.tr('favorites'), '$_favoritesCount', Colors.purple),
                     ],
                   ),
                 ],
@@ -504,28 +544,30 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    '账户信息',
+                  Text(
+                    AppLocalization.tr('account_info'),
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 12),
-                  _buildInfoRow('邮箱地址', _user!.email ?? '未知'),
+                  _buildInfoRow(AppLocalization.tr('email_address'), _user!.email ?? AppLocalization.tr('unknown')),
                   _buildInfoRow(
-                    '用户角色',
-                    _userProfile?['role'] == 'admin' ? '管理员' : '普通用户',
+                    AppLocalization.tr('user_role'),
+                    _userProfile?['role'] == 'admin'
+                        ? AppLocalization.tr('admin_role')
+                        : AppLocalization.tr('normal_user'),
                   ),
                   if (_userProfile?['member_since'] != null)
                     _buildInfoRow(
-                      '注册时间',
+                      AppLocalization.tr('registered_at'),
                       _formatDate(_userProfile!['member_since'] as String?),
                     ),
                   if (_userProfile?['max_borrow_limit'] != null)
                     _buildInfoRow(
-                      '借阅上限',
-                      '${_userProfile!['max_borrow_limit']} 本',
+                      AppLocalization.tr('borrow_limit'),
+                      '${_userProfile!['max_borrow_limit']} ${AppLocalization.tr('book_unit')}',
                     ),
                 ],
               ),
@@ -537,8 +579,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    '个人信息',
+                  Text(
+                    AppLocalization.tr('personal_info'),
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -546,16 +588,16 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   ),
                   const SizedBox(height: 12),
                   _buildInfoRow(
-                    '姓名',
+                    AppLocalization.tr('name'),
                     _getFullName(),
                   ),
                   _buildInfoRow(
-                    '电话',
-                    _userProfile?['phone'] as String? ?? '未设置',
+                    AppLocalization.tr('phone'),
+                    _userProfile?['phone'] as String? ?? AppLocalization.tr('not_set'),
                   ),
                   _buildInfoRow(
-                    '地址',
-                    _userProfile?['address'] as String? ?? '未设置',
+                    AppLocalization.tr('address'),
+                    _userProfile?['address'] as String? ?? AppLocalization.tr('not_set'),
                   ),
                 ],
               ),
@@ -571,36 +613,43 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   _buildMenuTile(
                     context,
                     Icons.palette_outlined,
-                    '主题模式',
+                    AppLocalization.tr('theme_mode'),
                     _showThemeModePicker,
                     subtitle: _themeModeLabel(themeMode),
                   ),
                   _buildMenuTile(
                     context,
+                    Icons.language,
+                    AppLocalization.tr('language'),
+                    _showLanguagePicker,
+                    subtitle: AppLocalization.languageLabel(AppLocalization.notifier.value),
+                  ),
+                  _buildMenuTile(
+                    context,
                     Icons.edit,
-                    '编辑资料',
+                    AppLocalization.tr('edit_profile'),
                     _handleEditProfile,
                   ),
                   _buildMenuTile(
                     context,
                     Icons.lock,
-                    '修改密码',
+                    AppLocalization.tr('change_password'),
                     _handleChangePassword,
                   ),
                   _buildMenuTile(
                     context,
                     Icons.history,
-                    '借阅历史',
+                    AppLocalization.tr('borrow_history'),
                     () {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('请在“我的借阅”页面查看借阅历史')),
+                        SnackBar(content: Text(AppLocalization.tr('check_borrows_hint'))),
                       );
                     },
                   ),
                   _buildMenuTile(
                     context,
                     Icons.logout,
-                    '退出登录',
+                    AppLocalization.tr('logout'),
                     _handleLogout,
                     color: Colors.red,
                   ),

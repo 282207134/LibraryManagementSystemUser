@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:library_management/data/services/auth_service.dart';
+import 'package:library_management/localization/app_localization.dart';
+import 'package:library_management/presentation/widgets/language_switch_button.dart';
 import 'package:library_management/utils/error_localization.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -169,8 +171,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('注册'),
+        title: Text(AppLocalization.tr('register')),
         elevation: 0,
+        actions: const [LanguageSwitchButton()],
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -180,13 +183,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
             children: [
               const SizedBox(height: 16),
               Text(
-                '创建账号',
+                AppLocalization.tr('create_account'),
                 style: Theme.of(context).textTheme.displaySmall,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
               Text(
-                '注册即可开始使用',
+                AppLocalization.tr('register_start'),
                 style: Theme.of(context).textTheme.bodyMedium,
                 textAlign: TextAlign.center,
               ),
@@ -197,10 +200,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   children: [
                     TextFormField(
                       controller: _usernameController,
-                      decoration: const InputDecoration(
-                        labelText: '用户名',
-                        prefixIcon: Icon(Icons.person),
-                        hintText: '请输入用户名',
+                      decoration: InputDecoration(
+                        labelText: AppLocalization.tr('username'),
+                        prefixIcon: const Icon(Icons.person),
+                        hintText: AppLocalization.tr('username'),
                       ),
                       enabled: !_isLoading,
                       validator: (value) {
@@ -214,10 +217,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     TextFormField(
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
-                      decoration: const InputDecoration(
-                        labelText: '邮箱',
-                        prefixIcon: Icon(Icons.email),
-                        hintText: '请输入邮箱',
+                      decoration: InputDecoration(
+                        labelText: AppLocalization.tr('email'),
+                        prefixIcon: const Icon(Icons.email),
+                        hintText: AppLocalization.tr('email'),
                       ),
                       enabled: !_isLoading,
                       validator: (value) {
@@ -235,7 +238,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       controller: _passwordController,
                       obscureText: _obscurePassword,
                       decoration: InputDecoration(
-                        labelText: '密码',
+                        labelText: AppLocalization.tr('password'),
                         prefixIcon: const Icon(Icons.lock),
                         suffixIcon: IconButton(
                           icon: Icon(
@@ -247,7 +250,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             setState(() => _obscurePassword = !_obscurePassword);
                           },
                         ),
-                        hintText: '请输入密码',
+                        hintText: AppLocalization.tr('password'),
                       ),
                       enabled: !_isLoading,
                       validator: (value) {
@@ -265,7 +268,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       controller: _confirmPasswordController,
                       obscureText: _obscureConfirmPassword,
                       decoration: InputDecoration(
-                        labelText: '确认密码',
+                        labelText: AppLocalization.tr('confirm_password'),
                         prefixIcon: const Icon(Icons.lock),
                         suffixIcon: IconButton(
                           icon: Icon(
@@ -279,7 +282,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             );
                           },
                         ),
-                        hintText: '请再次输入密码',
+                        hintText: AppLocalization.tr('confirm_password'),
                       ),
                       enabled: !_isLoading,
                       validator: (value) {
@@ -323,21 +326,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         width: 20,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text('注册'),
+                    : Text(AppLocalization.tr('register')),
               ),
               const SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    '已有账号？',
+                    AppLocalization.tr('no_account'),
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   TextButton(
                     onPressed: _isLoading
                         ? null
                         : () => context.go('/login'),
-                    child: const Text('去登录'),
+                    child: Text(AppLocalization.tr('go_login')),
                   ),
                 ],
               ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:library_management/data/services/auth_service.dart';
+import 'package:library_management/localization/app_localization.dart';
 import 'package:library_management/presentation/screens/home/pages/admin_page.dart';
 import 'package:library_management/presentation/screens/home/pages/books_page.dart';
 import 'package:library_management/presentation/screens/home/pages/borrows_page.dart';
@@ -55,19 +56,19 @@ class _HomeScreenState extends State<HomeScreen> {
     final items = <BottomNavigationBarItem>[
       const BottomNavigationBarItem(
         icon: Icon(Icons.home),
-        label: '首页',
+        label: '',
       ),
       const BottomNavigationBarItem(
         icon: Icon(Icons.library_books),
-        label: '图书浏览',
+        label: '',
       ),
       const BottomNavigationBarItem(
         icon: Icon(Icons.bookmark),
-        label: '我的借阅',
+        label: '',
       ),
       const BottomNavigationBarItem(
         icon: Icon(Icons.favorite),
-        label: '我的收藏',
+        label: '',
       ),
     ];
 
@@ -75,7 +76,7 @@ class _HomeScreenState extends State<HomeScreen> {
       items.add(
         const BottomNavigationBarItem(
           icon: Icon(Icons.admin_panel_settings),
-          label: '管理界面',
+          label: '',
         ),
       );
     }
@@ -83,7 +84,7 @@ class _HomeScreenState extends State<HomeScreen> {
     items.add(
       const BottomNavigationBarItem(
         icon: Icon(Icons.person),
-        label: '个人中心',
+        label: '',
       ),
     );
 
@@ -104,13 +105,36 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final labels = [
+      AppLocalization.tr('home'),
+      AppLocalization.tr('books'),
+      AppLocalization.tr('borrows'),
+      AppLocalization.tr('favorites'),
+      if (_isAdmin) AppLocalization.tr('admin'),
+      AppLocalization.tr('profile'),
+    ];
+
+    final items = _items
+        .asMap()
+        .entries
+        .map(
+          (entry) => BottomNavigationBarItem(
+            icon: entry.value.icon,
+            activeIcon: entry.value.activeIcon,
+            label: labels[entry.key],
+            tooltip: labels[entry.key],
+            backgroundColor: entry.value.backgroundColor,
+          ),
+        )
+        .toList();
+
     return Scaffold(
       body: _pages[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
         type: BottomNavigationBarType.fixed,
-        items: _items,
+        items: items,
       ),
     );
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:library_management/localization/app_localization.dart';
 import 'package:library_management/data/services/borrowing_service.dart';
 import 'package:library_management/data/services/auth_service.dart';
 import 'package:library_management/data/models/borrow_record_model.dart';
@@ -149,10 +150,12 @@ class _BorrowsPageState extends State<BorrowsPage> with SingleTickerProviderStat
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
+    final tabCurrent = AppLocalization.tr('current_borrow');
+    final tabHistory = AppLocalization.tr('history_record');
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('我的借阅'),
+        title: Text(AppLocalization.tr('borrows')),
         elevation: 0,
         backgroundColor: isDark ? colorScheme.surface : null,
         foregroundColor: isDark ? colorScheme.onSurface : null,
@@ -175,9 +178,9 @@ class _BorrowsPageState extends State<BorrowsPage> with SingleTickerProviderStat
                 color: colorScheme.primary,
                 borderRadius: BorderRadius.circular(9),
               ),
-              tabs: const [
-                Tab(text: '当前借阅'),
-                Tab(text: '历史记录'),
+              tabs: [
+                Tab(text: tabCurrent),
+                Tab(text: tabHistory),
               ],
             ),
           ),
@@ -385,7 +388,7 @@ class _BorrowsPageState extends State<BorrowsPage> with SingleTickerProviderStat
                         backgroundColor: Colors.green,
                         foregroundColor: Colors.white,
                       ),
-                      child: const Text('归还'),
+                      child: Text(AppLocalization.tr('return_book')),
                     ),
                   ),
                 ],

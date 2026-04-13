@@ -3,6 +3,7 @@ import 'package:library_management/data/services/book_service.dart';
 import 'package:library_management/data/services/auth_service.dart';
 import 'package:library_management/data/models/book_model.dart';
 import 'package:library_management/config/app_config.dart';
+import 'package:library_management/localization/app_localization.dart';
 
 class FavoritesPage extends StatefulWidget {
   const FavoritesPage({Key? key}) : super(key: key);
@@ -100,7 +101,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('我的收藏'),
+        title: Text(AppLocalization.tr('favorites')),
         elevation: 0,
         backgroundColor: isDark ? colorScheme.surface : null,
         foregroundColor: isDark ? colorScheme.onSurface : null,

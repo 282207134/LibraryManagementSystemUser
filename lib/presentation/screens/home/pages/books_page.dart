@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:library_management/data/services/book_service.dart';
 import 'package:library_management/data/models/book_model.dart';
+import 'package:library_management/localization/app_localization.dart';
 import 'package:library_management/utils/image_helper.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
@@ -78,7 +79,7 @@ class _BooksPageState extends State<BooksPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('图书浏览'),
+        title: Text(AppLocalization.tr('books')),
         elevation: 0,
         backgroundColor: isDark ? colorScheme.surface : null,
         foregroundColor: isDark ? colorScheme.onSurface : null,
@@ -90,7 +91,7 @@ class _BooksPageState extends State<BooksPage> {
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: '搜索书名或作者...',
+                hintText: AppLocalization.tr('search_book_author'),
                 hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
                 prefixIcon: Icon(Icons.search, color: colorScheme.onSurfaceVariant),
                 border: OutlineInputBorder(
@@ -130,7 +131,9 @@ class _BooksPageState extends State<BooksPage> {
                             Icon(Icons.book_outlined, size: 64, color: Colors.grey),
                             const SizedBox(height: 16),
                             Text(
-                              _searchQuery.isEmpty ? '暂无图书' : '未找到相关图书',
+                              _searchQuery.isEmpty
+                                  ? AppLocalization.tr('books')
+                                  : AppLocalization.tr('search_book_author'),
                               style: TextStyle(color: Colors.grey, fontSize: 16),
                             ),
                           ],
@@ -200,7 +203,9 @@ class _BooksPageState extends State<BooksPage> {
                 const SizedBox(width: 8),
                 Chip(
                   label: Text(
-                    book.availableQuantity > 0 ? '可借' : '已借完',
+                    book.availableQuantity > 0
+                        ? AppLocalization.tr('available')
+                        : AppLocalization.tr('unavailable'),
                     style: const TextStyle(fontSize: 10, color: Colors.white),
                   ),
                   backgroundColor: book.availableQuantity > 0 ? Colors.green : Colors.red,

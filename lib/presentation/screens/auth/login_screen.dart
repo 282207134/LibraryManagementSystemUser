@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:library_management/data/services/auth_service.dart';
+import 'package:library_management/localization/app_localization.dart';
+import 'package:library_management/presentation/widgets/language_switch_button.dart';
 import 'package:library_management/utils/error_localization.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -80,23 +82,23 @@ class _LoginScreenState extends State<LoginScreen> {
     final email = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('找回密码'),
+        title: Text(AppLocalization.tr('forgot_password')),
         content: Form(
           key: dialogFormKey,
           child: TextFormField(
             controller: _resetEmailController,
             keyboardType: TextInputType.emailAddress,
             autofocus: true,
-            decoration: const InputDecoration(
-              labelText: '邮箱',
-              hintText: '请输入注册邮箱',
+            decoration: InputDecoration(
+              labelText: AppLocalization.tr('email'),
+              hintText: AppLocalization.tr('search_book_author'),
             ),
             validator: (value) {
               if (value == null || value.isEmpty) {
-                return '请输入邮箱';
+                return AppLocalization.tr('email');
               }
               if (!value.contains('@')) {
-                return '请输入有效的邮箱地址';
+                return AppLocalization.tr('email');
               }
               return null;
             },
@@ -105,7 +107,7 @@ class _LoginScreenState extends State<LoginScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('取消'),
+            child: Text(AppLocalization.tr('cancel')),
           ),
           ElevatedButton(
             onPressed: () {
@@ -113,7 +115,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 Navigator.pop(context, _resetEmailController.text.trim());
               }
             },
-            child: const Text('发送重置邮件'),
+            child: Text(AppLocalization.tr('save')),
           ),
         ],
       ),
@@ -127,7 +129,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('已发送重置密码邮件，请查收邮箱')),
+        SnackBar(content: Text(AppLocalization.tr('forgot_password'))),
       );
     } catch (e) {
       if (!mounted) return;
@@ -150,8 +152,9 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('登录'),
+        title: Text(AppLocalization.tr('login')),
         elevation: 0,
+        actions: const [LanguageSwitchButton()],
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -167,13 +170,13 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 32),
               Text(
-                '欢迎来到图书馆',
+                AppLocalization.tr('welcome_library'),
                 style: Theme.of(context).textTheme.displaySmall,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
               Text(
-                '请登录以继续',
+                AppLocalization.tr('login_continue'),
                 style: Theme.of(context).textTheme.bodyMedium,
                 textAlign: TextAlign.center,
               ),
@@ -185,18 +188,18 @@ class _LoginScreenState extends State<LoginScreen> {
                     TextFormField(
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
-                      decoration: const InputDecoration(
-                        labelText: '邮箱',
-                        prefixIcon: Icon(Icons.email),
-                        hintText: '请输入邮箱',
+                      decoration: InputDecoration(
+                        labelText: AppLocalization.tr('email'),
+                        prefixIcon: const Icon(Icons.email),
+                        hintText: AppLocalization.tr('email'),
                       ),
                       enabled: !_isBusy,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return '请输入邮箱';
+                          return AppLocalization.tr('email');
                         }
                         if (!value.contains('@')) {
-                          return '请输入有效的邮箱地址';
+                          return AppLocalization.tr('email');
                         }
                         return null;
                       },
@@ -206,7 +209,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       controller: _passwordController,
                       obscureText: _obscurePassword,
                       decoration: InputDecoration(
-                        labelText: '密码',
+                        labelText: AppLocalization.tr('password'),
                         prefixIcon: const Icon(Icons.lock),
                         suffixIcon: IconButton(
                           icon: Icon(
@@ -218,12 +221,12 @@ class _LoginScreenState extends State<LoginScreen> {
                             setState(() => _obscurePassword = !_obscurePassword);
                           },
                         ),
-                        hintText: '请输入密码',
+                        hintText: AppLocalization.tr('password'),
                       ),
                       enabled: !_isBusy,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return '请输入密码';
+                          return AppLocalization.tr('password');
                         }
                         if (value.length < 6) {
                           return '密码至少需要6个字符';
@@ -243,7 +246,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         width: 20,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text('登录'),
+                    : Text(AppLocalization.tr('login')),
               ),
               const SizedBox(height: 16),
               TextButton(
@@ -254,21 +257,21 @@ class _LoginScreenState extends State<LoginScreen> {
                         width: 20,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text('忘记密码？'),
+                    : Text(AppLocalization.tr('forgot_password')),
               ),
               const SizedBox(height: 24),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    '还没有账号？',
+                    AppLocalization.tr('no_account'),
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   TextButton(
                     onPressed: _isBusy
                         ? null
                         : () => context.go('/register'),
-                    child: const Text('去注册'),
+                    child: Text(AppLocalization.tr('go_register')),
                   ),
                 ],
               ),

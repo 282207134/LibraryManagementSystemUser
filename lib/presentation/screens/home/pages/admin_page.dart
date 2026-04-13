@@ -3,6 +3,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:library_management/config/app_config.dart';
 import 'package:library_management/data/models/book_model.dart';
 import 'package:library_management/data/services/book_service.dart';
+import 'package:library_management/localization/app_localization.dart';
 import 'package:library_management/utils/image_helper.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -46,7 +47,7 @@ class _AdminPageState extends State<AdminPage> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('加载图书失败: $e')),
+        SnackBar(content: Text('${AppLocalization.tr('loading')}: $e')),
       );
     } finally {
       if (mounted) {
@@ -84,7 +85,7 @@ class _AdminPageState extends State<AdminPage> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(isEdit ? '编辑图书' : '添加图书'),
+        title: Text(isEdit ? AppLocalization.tr('edit_book') : AppLocalization.tr('add_book')),
         content: SizedBox(
           width: 420,
           child: StatefulBuilder(
@@ -92,29 +93,29 @@ class _AdminPageState extends State<AdminPage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  _buildField(titleController, '书名*'),
+                  _buildField(titleController, '${AppLocalization.tr('books')}*'),
                   const SizedBox(height: 10),
-                  _buildField(authorController, '作者*'),
+                  _buildField(authorController, '${AppLocalization.tr('author')}*'),
                   const SizedBox(height: 10),
                   _buildField(isbnController, 'ISBN'),
                   const SizedBox(height: 10),
-                  _buildField(publisherController, '出版社'),
+                  _buildField(publisherController, AppLocalization.tr('publisher')),
                   const SizedBox(height: 10),
-                  _buildField(yearController, '出版年份', keyboardType: TextInputType.number),
+                  _buildField(yearController, AppLocalization.tr('publication_year'), keyboardType: TextInputType.number),
                   const SizedBox(height: 10),
-                  _buildField(categoryController, '分类'),
+                  _buildField(categoryController, AppLocalization.tr('category')),
                   const SizedBox(height: 10),
-                  _buildField(descriptionController, '简介', maxLines: 3),
+                  _buildField(descriptionController, AppLocalization.tr('description'), maxLines: 3),
                   const SizedBox(height: 10),
                   _buildField(
                     quantityController,
-                    '库存数量*',
+                    '${AppLocalization.tr('quantity')}*',
                     keyboardType: TextInputType.number,
                   ),
                   const SizedBox(height: 10),
                   _buildField(
                     availableController,
-                    '可借数量*',
+                    '${AppLocalization.tr('available_quantity')}*',
                     keyboardType: TextInputType.number,
                   ),
                   const SizedBox(height: 14),
@@ -144,7 +145,7 @@ class _AdminPageState extends State<AdminPage> {
                                   }
                                 },
                           icon: const Icon(Icons.camera_alt),
-                          label: const Text('拍照上传'),
+                          label: Text(AppLocalization.tr('camera_upload')),
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -172,7 +173,7 @@ class _AdminPageState extends State<AdminPage> {
                                   }
                                 },
                           icon: const Icon(Icons.photo_library),
-                          label: const Text('相册上传'),
+                          label: Text(AppLocalization.tr('gallery_upload')),
                         ),
                       ),
                     ],
@@ -193,7 +194,7 @@ class _AdminPageState extends State<AdminPage> {
                           height: 120,
                           alignment: Alignment.center,
                           color: Colors.grey.shade200,
-                          child: const Text('封面预览加载失败'),
+                          child: Text(AppLocalization.tr('loading')),
                         ),
                       ),
                     ),
@@ -206,11 +207,11 @@ class _AdminPageState extends State<AdminPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('取消'),
+            child: Text(AppLocalization.tr('cancel')),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text(isEdit ? '保存' : '添加'),
+            child: Text(isEdit ? AppLocalization.tr('save') : AppLocalization.tr('add_book')),
           ),
         ],
       ),
@@ -226,13 +227,13 @@ class _AdminPageState extends State<AdminPage> {
 
     if (title.isEmpty || author.isEmpty || quantity == null || available == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('请填写完整必填信息')),
+        SnackBar(content: Text(AppLocalization.tr('confirm'))),
       );
       return;
     }
     if (quantity < 0 || available < 0 || available > quantity) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('数量不合法：可借数量不能大于库存')),
+        SnackBar(content: Text(AppLocalization.tr('available_quantity'))),
       );
       return;
     }
@@ -269,12 +270,12 @@ class _AdminPageState extends State<AdminPage> {
       await _loadBooks();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(isEdit ? '图书更新成功' : '图书添加成功')),
+        SnackBar(content: Text(isEdit ? AppLocalization.tr('update') : AppLocalization.tr('add_book'))),
       );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${isEdit ? '更新' : '添加'}失败: $e')),
+        SnackBar(content: Text('${isEdit ? AppLocalization.tr('update') : AppLocalization.tr('add_book')}: $e')),
       );
     }
   }
@@ -283,16 +284,16 @@ class _AdminPageState extends State<AdminPage> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('删除图书'),
-        content: Text('确定删除《${book.title}》吗？'),
+        title: Text(AppLocalization.tr('delete')),
+        content: Text('${AppLocalization.tr('confirm')} "${book.title}"?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('取消'),
+            child: Text(AppLocalization.tr('cancel')),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('删除'),
+            child: Text(AppLocalization.tr('delete')),
           ),
         ],
       ),
@@ -304,12 +305,12 @@ class _AdminPageState extends State<AdminPage> {
       await _loadBooks();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('图书删除成功')),
+        SnackBar(content: Text(AppLocalization.tr('delete'))),
       );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('删除失败: $e')),
+        SnackBar(content: Text('${AppLocalization.tr('operation_failed')}: $e')),
       );
     }
   }
@@ -350,7 +351,7 @@ class _AdminPageState extends State<AdminPage> {
     } catch (e) {
       if (!mounted) return null;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('上传封面失败: $e')),
+        SnackBar(content: Text('${AppLocalization.tr('upload_failed')}: $e')),
       );
       return null;
     }
@@ -383,7 +384,7 @@ class _AdminPageState extends State<AdminPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('管理界面'),
+        title: Text(AppLocalization.tr('admin')),
         elevation: 0,
         backgroundColor: isDark ? colorScheme.surface : null,
         foregroundColor: isDark ? colorScheme.onSurface : null,
@@ -396,7 +397,7 @@ class _AdminPageState extends State<AdminPage> {
               controller: _searchController,
               onSubmitted: _onSearch,
               decoration: InputDecoration(
-                hintText: '搜索书名或作者...',
+                hintText: AppLocalization.tr('search_book_author'),
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: _searchTerm.isNotEmpty
                     ? IconButton(
@@ -415,7 +416,7 @@ class _AdminPageState extends State<AdminPage> {
             child: _loading
                 ? const Center(child: CircularProgressIndicator())
                 : _books.isEmpty
-                    ? const Center(child: Text('暂无图书'))
+                    ? Center(child: Text(AppLocalization.tr('books')))
                     : RefreshIndicator(
                         onRefresh: _loadBooks,
                         child: ListView.builder(
@@ -454,7 +455,7 @@ class _AdminPageState extends State<AdminPage> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showBookDialog(),
         icon: const Icon(Icons.add),
-        label: const Text('添加图书'),
+        label: Text(AppLocalization.tr('add_book')),
       ),
     );
   }

@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:library_management/data/services/home_service.dart';
 import 'package:library_management/data/models/book_model.dart';
+import 'package:library_management/localization/app_localization.dart';
+import 'package:library_management/presentation/widgets/language_switch_button.dart';
 import 'package:library_management/providers/theme_mode_provider.dart';
 import 'package:library_management/utils/image_helper.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -122,11 +124,12 @@ class _HomePageState extends ConsumerState<HomePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('图书馆'),
+        title: Text(AppLocalization.tr('library')),
         elevation: 0,
         backgroundColor: isDark ? colorScheme.surface : null,
         foregroundColor: isDark ? colorScheme.onSurface : null,
         actions: [
+          const LanguageSwitchButton(),
           IconButton(
             tooltip: _themeModeLabel(themeMode),
             onPressed: () => _cycleThemeMode(themeMode),
@@ -146,7 +149,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                 child: AbsorbPointer(
                   child: TextField(
                     decoration: InputDecoration(
-                      hintText: '搜索书名或作者...',
+                      hintText: AppLocalization.tr('search_book_author'),
                       prefixIcon: const Icon(Icons.search),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -165,8 +168,8 @@ class _HomePageState extends ConsumerState<HomePage> {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Row(
                   children: [
-                    const Text(
-                      '⭐ 精选推荐',
+                    Text(
+                      AppLocalization.tr('featured'),
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -197,8 +200,8 @@ class _HomePageState extends ConsumerState<HomePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      '人气排行榜 🔥',
+                    Text(
+                      AppLocalization.tr('popular_rank'),
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -223,8 +226,8 @@ class _HomePageState extends ConsumerState<HomePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      '新上架',
+                    Text(
+                      AppLocalization.tr('new_arrivals'),
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -257,8 +260,8 @@ class _HomePageState extends ConsumerState<HomePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      '📖 分类浏览',
+                    Text(
+                      AppLocalization.tr('category_browse'),
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
