@@ -38,6 +38,7 @@ class AuthService {
       email: email,
       password: password,
       data: data,
+      emailRedirectTo: AppConfig.emailConfirmRedirectUrl,
     );
   }
 
@@ -67,7 +68,10 @@ class AuthService {
 
   // 发送找回密码邮件
   Future<void> resetPassword(String email) async {
-    await _supabase.auth.resetPasswordForEmail(email);
+    await _supabase.auth.resetPasswordForEmail(
+      email,
+      redirectTo: AppConfig.passwordResetRedirectUrl,
+    );
   }
 
   // 检查是否已登录

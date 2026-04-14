@@ -91,14 +91,14 @@ class _LoginScreenState extends State<LoginScreen> {
             autofocus: true,
             decoration: InputDecoration(
               labelText: AppLocalization.tr('email'),
-              hintText: AppLocalization.tr('search_book_author'),
+              hintText: AppLocalization.tr('enter_email'),
             ),
             validator: (value) {
               if (value == null || value.isEmpty) {
-                return AppLocalization.tr('email');
+                return AppLocalization.tr('enter_email');
               }
               if (!value.contains('@')) {
-                return AppLocalization.tr('email');
+                return AppLocalization.tr('invalid_email');
               }
               return null;
             },
@@ -115,7 +115,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 Navigator.pop(context, _resetEmailController.text.trim());
               }
             },
-            child: Text(AppLocalization.tr('save')),
+            child: Text(AppLocalization.tr('send_reset_link')),
           ),
         ],
       ),
@@ -129,7 +129,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalization.tr('forgot_password'))),
+        SnackBar(content: Text(AppLocalization.tr('reset_email_sent'))),
       );
     } catch (e) {
       if (!mounted) return;

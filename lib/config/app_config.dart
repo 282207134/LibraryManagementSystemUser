@@ -5,6 +5,11 @@ class AppConfig {
   // Supabase配置
   static const String supabaseUrl = 'https://fmilpfmdvpbpomygpxtz.supabase.co';
   static const String supabaseAnonKey = 'sb_publishable_YkOmauGsEWc3dNLOZgzWuw_ElBMa076';
+
+  // Web地址配置（用于邮件跳转等场景）
+  static const String webBaseUrl = 'https://library-management-system-chi-lyart.vercel.app';
+  static const String passwordResetRedirectUrl = '$webBaseUrl/reset-password';
+  static const String emailConfirmRedirectUrl = '$webBaseUrl/login';
   
   // 传统API配置（如果需要）
   static const String apiBaseUrl = 'https://api.library.com';

@@ -102,6 +102,26 @@ class AppLocalization {
       AppLanguage.en: 'Forgot password?',
       AppLanguage.ja: 'パスワードを忘れた？',
     },
+    'enter_email': {
+      AppLanguage.zh: '请输入邮箱',
+      AppLanguage.en: 'Enter email',
+      AppLanguage.ja: 'メールを入力してください',
+    },
+    'invalid_email': {
+      AppLanguage.zh: '请输入有效邮箱',
+      AppLanguage.en: 'Please enter a valid email',
+      AppLanguage.ja: '有効なメールを入力してください',
+    },
+    'send_reset_link': {
+      AppLanguage.zh: '发送重置邮件',
+      AppLanguage.en: 'Send reset email',
+      AppLanguage.ja: 'リセットメール送信',
+    },
+    'reset_email_sent': {
+      AppLanguage.zh: '重置邮件已发送，请检查邮箱',
+      AppLanguage.en: 'Reset email sent. Please check your inbox.',
+      AppLanguage.ja: 'リセットメールを送信しました。メールをご確認ください。',
+    },
     'go_register': {
       AppLanguage.zh: '去注册',
       AppLanguage.en: 'Sign up',
@@ -146,6 +166,36 @@ class AppLocalization {
       AppLanguage.zh: '管理界面',
       AppLanguage.en: 'Admin',
       AppLanguage.ja: '管理',
+    },
+    'nav_home': {
+      AppLanguage.zh: '首页',
+      AppLanguage.en: 'Home',
+      AppLanguage.ja: 'ホーム',
+    },
+    'nav_books': {
+      AppLanguage.zh: '图书',
+      AppLanguage.en: 'Books',
+      AppLanguage.ja: '図書',
+    },
+    'nav_borrows': {
+      AppLanguage.zh: '借阅',
+      AppLanguage.en: 'Borrows',
+      AppLanguage.ja: '借覧',
+    },
+    'nav_favorites': {
+      AppLanguage.zh: '收藏',
+      AppLanguage.en: 'Favs',
+      AppLanguage.ja: 'お気に',
+    },
+    'nav_admin': {
+      AppLanguage.zh: '管理',
+      AppLanguage.en: 'Admin',
+      AppLanguage.ja: '管理',
+    },
+    'nav_profile': {
+      AppLanguage.zh: '我的',
+      AppLanguage.en: 'Me',
+      AppLanguage.ja: 'マイ',
     },
     'library': {
       AppLanguage.zh: '图书馆',
