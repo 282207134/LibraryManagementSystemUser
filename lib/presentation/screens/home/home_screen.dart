@@ -106,12 +106,12 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final labels = [
-      AppLocalization.tr('home'),
-      AppLocalization.tr('books'),
-      AppLocalization.tr('borrows'),
-      AppLocalization.tr('favorites'),
-      if (_isAdmin) AppLocalization.tr('admin'),
-      AppLocalization.tr('profile'),
+      AppLocalization.tr('nav_home'),
+      AppLocalization.tr('nav_books'),
+      AppLocalization.tr('nav_borrows'),
+      AppLocalization.tr('nav_favorites'),
+      if (_isAdmin) AppLocalization.tr('nav_admin'),
+      AppLocalization.tr('nav_profile'),
     ];
 
     final items = _items
