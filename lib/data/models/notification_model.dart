@@ -1,15 +1,15 @@
 import 'package:json_annotation/json_annotation.dart';
 
 @JsonSerializable()
-class Notification {
-  final String id;
-  final String userId;
-  final String title;
-  final String message;
-  final String type;
-  final bool isRead;
-  final String? data;
-  final String createdAt;
+class Notification { // 通知模型
+  final String id; // 通知ID
+  final String userId; // 用户ID
+  final String title; // 标题
+  final String message; // 消息内容
+  final String type; // 类型
+  final bool isRead; // 是否已读
+  final String? data; // 附加数据
+  final String createdAt; // 创建时间
 
   Notification({
     required this.id,
@@ -22,7 +22,7 @@ class Notification {
     required this.createdAt,
   });
 
-  factory Notification.fromJson(Map<String, dynamic> json) => Notification(
+  factory Notification.fromJson(Map<String, dynamic> json) => Notification( // 从JSON创建Notification对象
         id: json['id'] as String? ?? '',
         userId: json['user_id'] as String? ?? '',
         title: json['title'] as String? ?? '',
@@ -33,7 +33,7 @@ class Notification {
         createdAt: json['created_at'] as String? ?? '',
       );
 
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson() => { // 转换为JSON
         'id': id,
         'user_id': userId,
         'title': title,
@@ -44,7 +44,7 @@ class Notification {
         'created_at': createdAt,
       };
 
-  Notification copyWith({
+  Notification copyWith({ // 创建副本并修改指定字段
     String? id,
     String? userId,
     String? title,

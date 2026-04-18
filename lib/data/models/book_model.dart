@@ -1,52 +1,49 @@
 import 'package:json_annotation/json_annotation.dart';
 
-@JsonSerializable(
-  explicitToJson: true,
-  includeIfNull: false,
-)
-class Book {
-  final String id;
+@JsonSerializable(explicitToJson: true, includeIfNull: false) // JSON序列化配置
+class Book { // 图书模型
+  final String id; // 图书ID
   @JsonKey(name: 'isbn')
-  final String? isbn;
+  final String? isbn; // ISBN号
   @JsonKey(name: 'title')
-  final String title;
+  final String title; // 书名
   @JsonKey(name: 'subtitle')
-  final String? subtitle;
+  final String? subtitle; // 副标题
   @JsonKey(name: 'author')
-  final String author;
+  final String author; // 作者
   @JsonKey(name: 'translator')
-  final String? translator;
+  final String? translator; // 译者
   @JsonKey(name: 'publisher')
-  final String? publisher;
+  final String? publisher; // 出版社
   @JsonKey(name: 'publication_year')
-  final int? publicationYear;
+  final int? publicationYear; // 出版年份
   @JsonKey(name: 'category')
-  final String? category;
+  final String? category; // 分类
   @JsonKey(name: 'description')
-  final String? description;
+  final String? description; // 描述
   @JsonKey(name: 'quantity')
-  final int quantity;
+  final int quantity; // 总数量
   @JsonKey(name: 'available_quantity')
-  final int availableQuantity;
+  final int availableQuantity; // 可借数量
   @JsonKey(name: 'cover_image_url')
-  final String? coverImageUrl;
+  final String? coverImageUrl; // 封面图片URL
   @JsonKey(name: 'created_at')
-  final String createdAt;
+  final String createdAt; // 创建时间
   @JsonKey(name: 'updated_at')
-  final String? updatedAt;
+  final String? updatedAt; // 更新时间
   
-  // 保留旧字段以兼容（已废弃）
+  // 保留旧字段以兼容(已废弃)
   @Deprecated('Use category instead')
-  String? get categoryId => category;
+  String? get categoryId => category; // 获取分类ID(已废弃)
   
   @Deprecated('Use coverImageUrl instead')
-  String? get coverImage => coverImageUrl;
+  String? get coverImage => coverImageUrl; // 获取封面图片(已废弃)
   
   @Deprecated('Use quantity instead')
-  int get totalCopies => quantity;
+  int get totalCopies => quantity; // 获取总副本数(已废弃)
   
   @Deprecated('Use availableQuantity instead')
-  int get availableCopies => availableQuantity;
+  int get availableCopies => availableQuantity; // 获取可用副本数(已废弃)
 
   Book({
     required this.id,
@@ -66,9 +63,9 @@ class Book {
     this.updatedAt,
   });
 
-  factory Book.fromJson(Map<String, dynamic> json) {
+  factory Book.fromJson(Map<String, dynamic> json) { // 从JSON创建Book对象
     // 安全地解析数字字段
-    int safeInt(dynamic value, int defaultValue) {
+    int safeInt(dynamic value, int defaultValue) { // 安全解析int
       if (value == null) return defaultValue;
       if (value is int) return value;
       if (value is num) return value.toInt();
@@ -79,7 +76,7 @@ class Book {
       return defaultValue;
     }
 
-    int? safeIntNullable(dynamic value) {
+    int? safeIntNullable(dynamic value) { // 安全解析可空int
       if (value == null) return null;
       if (value is int) return value;
       if (value is num) return value.toInt();
@@ -90,7 +87,7 @@ class Book {
       return null;
     }
 
-    String safeString(dynamic value, String defaultValue) {
+    String safeString(dynamic value, String defaultValue) { // 安全解析字符串
       if (value == null) return defaultValue;
       if (value is String) return value;
       return value.toString();
@@ -115,7 +112,7 @@ class Book {
     );
   }
 
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson() => { // 转换为JSON
         'id': id,
         'isbn': isbn,
         'title': title,
@@ -133,7 +130,7 @@ class Book {
         'updated_at': updatedAt,
       };
 
-  Book copyWith({
+  Book copyWith({ // 创建副本并修改指定字段
     String? id,
     String? isbn,
     String? title,

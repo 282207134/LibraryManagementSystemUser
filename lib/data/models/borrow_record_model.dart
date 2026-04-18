@@ -2,26 +2,26 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:library_management/data/models/book_model.dart';
 
 @JsonSerializable()
-class BorrowRecord {
-  final String id;
+class BorrowRecord { // 借阅记录模型
+  final String id; // 记录ID
   @JsonKey(name: 'user_id')
-  final String userId;
+  final String userId; // 用户ID
   @JsonKey(name: 'book_id')
-  final String bookId;
+  final String bookId; // 图书ID
   @JsonKey(name: 'borrowed_at')
-  final String borrowedAt;
+  final String borrowedAt; // 借阅时间
   @JsonKey(name: 'due_date')
-  final String dueDate;
+  final String dueDate; // 应还日期
   @JsonKey(name: 'returned_at')
-  final String? returnedAt;
-  final String status;
+  final String? returnedAt; // 归还时间
+  final String status; // 状态
   @JsonKey(name: 'renew_count')
-  final int renewCount;
-  final double? fine;
+  final int renewCount; // 续借次数
+  final double? fine; // 罚款金额
   
-  // 嵌套的book对象（从join查询获取）
+  // 嵌套的book对象(从join查询获取)
   @JsonKey(name: 'books')
-  final Book? book;
+  final Book? book; // 关联的图书信息
 
   BorrowRecord({
     required this.id,
@@ -36,9 +36,9 @@ class BorrowRecord {
     this.book,
   });
 
-  factory BorrowRecord.fromJson(Map<String, dynamic> json) {
-    // 保守解析，防止后端返回 null 时的类型转换错误
-    int safeInt(dynamic value, {int defaultValue = 0}) {
+  factory BorrowRecord.fromJson(Map<String, dynamic> json) { // 从JSON创建BorrowRecord对象
+    // 保守解析,防止后端返回 null 时的类型转换错误
+    int safeInt(dynamic value, {int defaultValue = 0}) { // 安全解析int
       if (value == null) return defaultValue;
       if (value is int) return value;
       if (value is num) return value.toInt();
@@ -49,7 +49,7 @@ class BorrowRecord {
       return defaultValue;
     }
 
-    double? safeDouble(dynamic value) {
+    double? safeDouble(dynamic value) { // 安全解析double
       if (value == null) return null;
       if (value is num) return value.toDouble();
       if (value is String) return double.tryParse(value);
@@ -72,7 +72,7 @@ class BorrowRecord {
     );
   }
 
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson() => { // 转换为JSON
         'id': id,
         'user_id': userId,
         'book_id': bookId,
@@ -85,7 +85,7 @@ class BorrowRecord {
         'books': book?.toJson(),
       };
 
-  BorrowRecord copyWith({
+  BorrowRecord copyWith({ // 创建副本并修改指定字段
     String? id,
     String? userId,
     String? bookId,
@@ -113,8 +113,8 @@ class BorrowRecord {
   
   // 兼容旧字段名
   @Deprecated('Use borrowedAt instead')
-  String get borrowDate => borrowedAt;
+  String get borrowDate => borrowedAt; // 获取借阅日期(已废弃)
   
   @Deprecated('Use returnedAt instead')
-  String? get returnDate => returnedAt;
+  String? get returnDate => returnedAt; // 获取归还日期(已废弃)
 }

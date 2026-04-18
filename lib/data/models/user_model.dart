@@ -1,27 +1,27 @@
 import 'package:json_annotation/json_annotation.dart';
 
 @JsonSerializable()
-class User {
-  final String id;
-  final String username;
-  final String email;
-  final String? phone;
-  final String? avatar;
-  final String role;
-  final String? studentId;
-  final String? department;
-  final String? realName;
-  final String? gender;
-  final String? birthDate;
-  final String? address;
-  final int borrowLimit;
-  final int currentBorrowCount;
-  final int? totalBorrowCount;
-  final int? creditScore;
-  final String status;
-  final String createdAt;
-  final String? updatedAt;
-  final String? lastLoginAt;
+class User { // 用户模型
+  final String id; // 用户ID
+  final String username; // 用户名
+  final String email; // 邮箱
+  final String? phone; // 手机号
+  final String? avatar; // 头像URL
+  final String role; // 角色
+  final String? studentId; // 学号
+  final String? department; // 部门
+  final String? realName; // 真实姓名
+  final String? gender; // 性别
+  final String? birthDate; // 生日
+  final String? address; // 地址
+  final int borrowLimit; // 借阅限额
+  final int currentBorrowCount; // 当前借阅数
+  final int? totalBorrowCount; // 总借阅数
+  final int? creditScore; // 信用分
+  final String status; // 状态
+  final String createdAt; // 创建时间
+  final String? updatedAt; // 更新时间
+  final String? lastLoginAt; // 最后登录时间
 
   User({
     required this.id,
@@ -46,7 +46,7 @@ class User {
     this.lastLoginAt,
   });
 
-  factory User.fromJson(Map<String, dynamic> json) => User(
+  factory User.fromJson(Map<String, dynamic> json) => User( // 从JSON创建User对象
         id: json['id'] as String? ?? '',
         username: json['username'] as String? ?? '',
         email: json['email'] as String? ?? '',
@@ -69,7 +69,7 @@ class User {
         lastLoginAt: json['last_login_at'] as String?,
       );
 
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson() => { // 转换为JSON
         'id': id,
         'username': username,
         'email': email,
@@ -92,7 +92,7 @@ class User {
         'last_login_at': lastLoginAt,
       };
 
-  User copyWith({
+  User copyWith({ // 创建副本并修改指定字段
     String? id,
     String? username,
     String? email,

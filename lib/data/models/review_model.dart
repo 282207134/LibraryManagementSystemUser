@@ -1,24 +1,24 @@
 import 'package:json_annotation/json_annotation.dart';
 
 @JsonSerializable()
-class Review {
-  final String id;
+class Review { // 评论模型
+  final String id; // 评论ID
   @JsonKey(name: 'book_id')
-  final String bookId;
+  final String bookId; // 图书ID
   @JsonKey(name: 'user_id')
-  final String userId;
-  final int rating;
-  final String? comment;
+  final String userId; // 用户ID
+  final int rating; // 评分(1-5)
+  final String? comment; // 评论内容
   @JsonKey(name: 'created_at')
-  final String? createdAt;
+  final String? createdAt; // 创建时间
   @JsonKey(name: 'updated_at')
-  final String? updatedAt;
+  final String? updatedAt; // 更新时间
   
-  // 从join查询获取的用户信息（不在JSON中，需要手动设置）
+  // 从join查询获取的用户信息(不在JSON中,需要手动设置)
   @JsonKey(includeFromJson: false, includeToJson: false)
-  String? userEmail;
+  String? userEmail; // 用户邮箱
   @JsonKey(includeFromJson: false, includeToJson: false)
-  String? userFullName;
+  String? userFullName; // 用户全名
 
   Review({
     required this.id,
@@ -32,7 +32,7 @@ class Review {
     this.userFullName,
   });
 
-  factory Review.fromJson(Map<String, dynamic> json) => Review(
+  factory Review.fromJson(Map<String, dynamic> json) => Review( // 从JSON创建Review对象 // 从JSON创建Review对象
         id: json['id'] as String? ?? '',
         bookId: json['book_id'] as String? ?? '',
         userId: json['user_id'] as String? ?? '',
@@ -42,7 +42,7 @@ class Review {
         updatedAt: json['updated_at'] as String?,
       );
 
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson() => { // 转换为JSON
         'id': id,
         'book_id': bookId,
         'user_id': userId,
@@ -54,13 +54,13 @@ class Review {
 }
 
 @JsonSerializable()
-class BookRatingStats {
+class BookRatingStats { // 图书评分统计
   @JsonKey(name: 'average_rating')
-  final double averageRating;
+  final double averageRating; // 平均评分
   @JsonKey(name: 'total_reviews')
-  final int totalReviews;
+  final int totalReviews; // 总评论数
   @JsonKey(name: 'rating_distribution')
-  final List<RatingDistribution> ratingDistribution;
+  final List<RatingDistribution> ratingDistribution; // 评分分布
 
   BookRatingStats({
     required this.averageRating,
@@ -68,7 +68,7 @@ class BookRatingStats {
     required this.ratingDistribution,
   });
 
-  factory BookRatingStats.fromJson(Map<String, dynamic> json) => BookRatingStats(
+  factory BookRatingStats.fromJson(Map<String, dynamic> json) => BookRatingStats( // 从JSON创建BookRatingStats对象 // 从JSON创建BookRatingStats对象
         averageRating: json['average_rating'] as double? ?? 0.0,
         totalReviews: json['total_reviews'] as int? ?? 0,
         ratingDistribution: (json['rating_distribution'] as List?)
@@ -77,7 +77,7 @@ class BookRatingStats {
             [],
       );
 
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson() => { // 转换为JSON
         'average_rating': averageRating,
         'total_reviews': totalReviews,
         'rating_distribution': ratingDistribution.map((e) => e.toJson()).toList(),
@@ -85,21 +85,21 @@ class BookRatingStats {
 }
 
 @JsonSerializable()
-class RatingDistribution {
-  final int rating;
-  final int count;
+class RatingDistribution { // 评分分布
+  final int rating; // 评分值
+  final int count; // 数量
 
   RatingDistribution({
     required this.rating,
     required this.count,
   });
 
-  factory RatingDistribution.fromJson(Map<String, dynamic> json) => RatingDistribution(
+  factory RatingDistribution.fromJson(Map<String, dynamic> json) => RatingDistribution( // 从JSON创建RatingDistribution对象 // 从JSON创建RatingDistribution对象
         rating: json['rating'] as int? ?? 0,
         count: json['count'] as int? ?? 0,
       );
 
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson() => { // 转换为JSON
         'rating': rating,
         'count': count,
       };

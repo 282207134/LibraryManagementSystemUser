@@ -1,13 +1,13 @@
 import 'package:json_annotation/json_annotation.dart';
 
 @JsonSerializable()
-class Category {
-  final String id;
-  final String name;
-  final String? description;
-  final String? icon;
-  final int? bookCount;
-  final String createdAt;
+class Category { // 分类模型
+  final String id; // 分类ID
+  final String name; // 分类名称
+  final String? description; // 描述
+  final String? icon; // 图标
+  final int? bookCount; // 图书数量
+  final String createdAt; // 创建时间
 
   Category({
     required this.id,
@@ -18,7 +18,7 @@ class Category {
     required this.createdAt,
   });
 
-  factory Category.fromJson(Map<String, dynamic> json) => Category(
+  factory Category.fromJson(Map<String, dynamic> json) => Category( // 从JSON创建Category对象
         id: json['id'] as String? ?? '',
         name: json['name'] as String? ?? '',
         description: json['description'] as String?,
@@ -27,7 +27,7 @@ class Category {
         createdAt: json['created_at'] as String? ?? '',
       );
 
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson() => { // 转换为JSON
         'id': id,
         'name': name,
         'description': description,
@@ -36,7 +36,7 @@ class Category {
         'created_at': createdAt,
       };
 
-  Category copyWith({
+  Category copyWith({ // 创建副本并修改指定字段
     String? id,
     String? name,
     String? description,
