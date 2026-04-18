@@ -1,5 +1,6 @@
+// 表单验证器类,提供常用的输入验证方法
 class Validators {
-  // Email validation
+  // 邮箱验证
   static String? validateEmail(String? value) {
     if (value == null || value.isEmpty) {
       return 'Email is required';
@@ -15,7 +16,7 @@ class Validators {
     return null;
   }
 
-  // Username validation
+  // 用户名验证
   static String? validateUsername(String? value) {
     if (value == null || value.isEmpty) {
       return 'Username is required';
@@ -36,7 +37,7 @@ class Validators {
     return null;
   }
 
-  // Password validation
+  // 密码验证
   static String? validatePassword(String? value) {
     if (value == null || value.isEmpty) {
       return 'Password is required';
@@ -61,7 +62,7 @@ class Validators {
     return null;
   }
 
-  // Confirm password validation
+  // 确认密码验证
   static String? validateConfirmPassword(String? password, String? confirmPassword) {
     if (confirmPassword == null || confirmPassword.isEmpty) {
       return 'Please confirm your password';
@@ -74,7 +75,7 @@ class Validators {
     return null;
   }
 
-  // Phone number validation
+  // 手机号验证
   static String? validatePhone(String? value) {
     if (value == null || value.isEmpty) {
       return 'Phone number is required';
@@ -90,7 +91,7 @@ class Validators {
     return null;
   }
 
-  // Student ID validation
+  // 学号验证
   static String? validateStudentId(String? value) {
     if (value == null || value.isEmpty) {
       return 'Student ID is required';
@@ -103,7 +104,7 @@ class Validators {
     return null;
   }
 
-  // General text field validation
+  // 通用文本字段验证
   static String? validateTextField(String? value, {required String fieldName}) {
     if (value == null || value.isEmpty) {
       return '$fieldName is required';
@@ -112,23 +113,23 @@ class Validators {
     return null;
   }
 
-  // Book title validation
+  // 图书标题验证
   static String? validateBookTitle(String? value) {
     return validateTextField(value, fieldName: 'Book title');
   }
 
-  // Author name validation
+  // 作者姓名验证
   static String? validateAuthorName(String? value) {
     return validateTextField(value, fieldName: 'Author name');
   }
 
-  // ISBN validation
+  // ISBN验证
   static String? validateISBN(String? value) {
     if (value == null || value.isEmpty) {
-      return null; // ISBN is optional
+      return null; // ISBN是可选的
     }
 
-    // ISBN-10 or ISBN-13
+    // ISBN-10或ISBN-13格式
     const isbnPattern = r'^\d{10}(\d{3})?(-\d+)?$';
     final regex = RegExp(isbnPattern);
 
@@ -139,7 +140,7 @@ class Validators {
     return null;
   }
 
-  // Range validation
+  // 范围验证
   static String? validateRange(int? value, {required int min, required int max}) {
     if (value == null) {
       return 'Value is required';
@@ -153,17 +154,20 @@ class Validators {
   }
 }
 
-// Extension methods for validation
+// 字符串验证扩展方法
 extension StringValidation on String {
+  // 验证是否为有效邮箱
   bool isValidEmail() {
     const emailPattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$';
     return RegExp(emailPattern).hasMatch(this);
   }
 
+  // 验证是否为有效用户名
   bool isValidUsername() {
     return length >= 3 && length <= 20 && RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(this);
   }
 
+  // 验证是否为有效密码
   bool isValidPassword() {
     return length >= 8 &&
         RegExp(r'[A-Z]').hasMatch(this) &&
@@ -171,17 +175,21 @@ extension StringValidation on String {
         RegExp(r'[0-9]').hasMatch(this);
   }
 
+  // 验证是否为有效手机号
   bool isValidPhone() {
     const phonePattern = r'^\+?1?\d{9,15}$';
     return RegExp(phonePattern).hasMatch(replaceAll(RegExp(r'[^\d+]'), ''));
   }
 
+  // 验证是否为有效ISBN
   bool isValidISBN() {
     const isbnPattern = r'^\d{10}(\d{3})?(-\d+)?$';
     return RegExp(isbnPattern).hasMatch(replaceAll('-', ''));
   }
 
+  // 判断字符串是否为空
   bool isEmpty() => trim().length == 0;
 
+  // 判断字符串是否不为空
   bool isNotEmpty() => !isEmpty();
 }
