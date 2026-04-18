@@ -1,26 +1,36 @@
+// 导入Flutter Material Design组件库
 import 'package:flutter/material.dart';
+// 导入Hive本地数据库库
 import 'package:hive_flutter/hive_flutter.dart';
 
+// 应用语言枚举,支持中文、英文、日文
 enum AppLanguage { zh, en, ja }
 
+// 应用本地化类,管理多语言翻译
 class AppLocalization {
+  // Hive存储盒名称
   static const _boxName = 'app_config';
+  // 语言配置键名
   static const _languageKey = 'app_language';
+  // 语言变化通知器
   static final ValueNotifier<AppLanguage> notifier =
       ValueNotifier<AppLanguage>(AppLanguage.zh);
 
+  // 初始化本地化服务,从本地存储加载语言设置
   static Future<void> init() async {
     final box = Hive.box<String>(_boxName);
     final raw = box.get(_languageKey);
     notifier.value = _fromRaw(raw);
   }
 
+  // 设置应用语言并保存到本地存储
   static Future<void> setLanguage(AppLanguage language) async {
     notifier.value = language;
     final box = Hive.box<String>(_boxName);
     await box.put(_languageKey, language.name);
   }
 
+  // 根据原始字符串转换为AppLanguage枚举
   static AppLanguage _fromRaw(String? raw) {
     switch (raw) {
       case 'en':
@@ -33,6 +43,7 @@ class AppLocalization {
     }
   }
 
+  // 获取语言的显示标签
   static String languageLabel(AppLanguage language) {
     switch (language) {
       case AppLanguage.zh:
@@ -44,6 +55,7 @@ class AppLocalization {
     }
   }
 
+  // 翻译方法,根据当前语言返回对应的翻译文本
   static String tr(String key) {
     final lang = notifier.value;
     final map = _strings[key];
