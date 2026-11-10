@@ -216,8 +216,6 @@ class _BorrowsPageState extends State<BorrowsPage>
 
   Widget _requestCard(BorrowRequest request) {
     final status = request.statusAt(_now);
-    final current =
-        _loans.any((loan) => loan.id == request.borrowingId && loan.isCurrent);
     return _card([
       _bookInfo(request.bookId, request.book),
       _status(status),
@@ -226,7 +224,7 @@ class _BorrowsPageState extends State<BorrowsPage>
         _detail('loan_expiry', date(request.expiresAt.toIso8601String())),
       if (request.reviewNote?.isNotEmpty == true)
         _detail('loan_note', request.reviewNote!),
-      if (status == 'pending' || current)
+      if (status == 'pending')
         Wrap(spacing: 12, children: [
           _showPass(request),
           if (status == 'pending')
@@ -245,8 +243,11 @@ class _BorrowsPageState extends State<BorrowsPage>
       _bookInfo(loan.bookId, loan.book),
       _status(overdue ? 'overdue' : loan.status),
       _detail('loan_borrowed_date', date(loan.borrowedAt)),
-      _detail(loan.isCurrent ? 'loan_due' : 'loan_returned_date',
-          date(loan.isCurrent ? loan.dueDate : loan.returnedAt ?? '')),
+      _detail(
+          loan.status == 'returned' ? 'loan_returned_date' : 'loan_due',
+          date(loan.status == 'returned'
+              ? loan.returnedAt ?? ''
+              : loan.dueDate)),
       if (loan.isCurrent) ...[
         _detail(overdue ? 'loan_days_overdue' : 'loan_days_left',
             '${loan.daysFromDue(_now)}'),
@@ -313,11 +314,19 @@ class _BorrowsPageState extends State<BorrowsPage>
                         child: Text(t('loan_policy'))),
                     Expanded(
                         child: TabBarView(controller: _tabs, children: [
-                      _list(_requests.map(_requestCard), 'loan_empty_requests'),
-                      _list(_loans.where((r) => r.isCurrent).map(_loanCard),
+                      _list(
+                          _requests
+                              .where((r) => r.statusAt(_now) == 'pending')
+                              .map(_requestCard),
+                          'loan_empty_requests'),
+                      _list(_loans.where((r) => r.isOutstanding).map(_loanCard),
                           'loan_empty_current'),
-                      _list(_loans.where((r) => !r.isCurrent).map(_loanCard),
-                          'loan_empty_history'),
+                      _list([
+                        ..._requests
+                            .where((r) => r.statusAt(_now) != 'pending')
+                            .map(_requestCard),
+                        ..._loans.where((r) => !r.isOutstanding).map(_loanCard),
+                      ], 'loan_empty_history'),
                     ])),
                   ]),
       );

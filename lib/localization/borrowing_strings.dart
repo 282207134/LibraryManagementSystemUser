@@ -15,7 +15,7 @@ const borrowingStrings = <String, List<String>>{
   'loan_returned': ['已归还', 'Returned', '返却済み'],
   'loan_borrowed': ['借阅中', 'On loan', '貸出中'],
   'loan_overdue': ['已逾期', 'Overdue', '延滞中'],
-  'loan_lost': ['遗失', 'Lost', '紛失'],
+  'loan_lost': ['已遗失', 'Lost', '紛失'],
   'loan_pass': ['借阅凭证', 'Library pass', '貸出受付コード'],
   'loan_show_pass': ['出示凭证', 'Show pass', 'コードを表示'],
   'loan_pass_hint': [
@@ -47,7 +47,11 @@ const borrowingStrings = <String, List<String>>{
     'Bring the book to the library. Staff confirm its return.',
     '図書を図書館に持参してください。職員が返却を確認します。'
   ],
-  'loan_empty_requests': ['暂无借阅申请', 'No requests yet', '貸出申請はありません'],
+  'loan_empty_requests': [
+    '暂无待确认的借阅申请',
+    'No pending requests',
+    '確認待ちの貸出申請はありません'
+  ],
   'loan_empty_current': ['暂无借阅中的图书', 'No current loans', '貸出中の図書はありません'],
   'loan_empty_history': ['暂无借阅历史', 'No borrowing history', '貸出履歴はありません'],
   'loan_load_failed': [

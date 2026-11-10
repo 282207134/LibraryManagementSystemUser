@@ -26,6 +26,8 @@ class BorrowRecord {
 
   bool get isCurrent => status == 'borrowed' || status == 'overdue';
 
+  bool get isOutstanding => isCurrent || status == 'lost';
+
   bool isOverdueAt(DateTime now) =>
       isCurrent &&
       (status == 'overdue' ||

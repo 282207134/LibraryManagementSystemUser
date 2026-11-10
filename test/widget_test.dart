@@ -91,6 +91,9 @@ void main() {
     await tester.tap(find.text('确认'));
     await tester.pumpAndSettle();
     expect(service.cancelled, 1);
+    expect(find.text('暂无待确认的借阅申请'), findsOneWidget);
+    await tester.tap(find.text('历史记录'));
+    await tester.pumpAndSettle();
     expect(find.text('已取消'), findsOneWidget);
     expect(find.byKey(const ValueKey('show-pass-request-test')), findsNothing);
     await tester.pumpWidget(const SizedBox.shrink());
@@ -109,8 +112,11 @@ void main() {
     service.loans = [loanFixture()];
     await tester.pageBack();
     await tester.pumpAndSettle();
-    expect(find.text('已确认借出'), findsOneWidget);
+    expect(find.text('暂无待确认的借阅申请'), findsOneWidget);
     expect(find.text('取消申请'), findsNothing);
+    await tester.tap(find.text('历史记录'));
+    await tester.pumpAndSettle();
+    expect(find.text('已确认借出'), findsOneWidget);
     await tester.tap(find.text('当前借阅'));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('show-pass-request-test')));
@@ -134,6 +140,9 @@ void main() {
       ];
     await tester.pumpWidget(MaterialApp(home: BorrowsPage(service: service)));
     await tester.pumpAndSettle();
+    expect(find.text('暂无待确认的借阅申请'), findsOneWidget);
+    await tester.tap(find.text('历史记录'));
+    await tester.pumpAndSettle();
     expect(find.text('已过期'), findsOneWidget);
     expect(find.text('取消申请'), findsNothing);
     expect(find.byKey(const ValueKey('show-pass-request-test')), findsNothing);
@@ -146,7 +155,7 @@ void main() {
     await tester.pumpWidget(MaterialApp(home: BorrowsPage(service: service)));
     await tester.pumpAndSettle();
     expect(find.text('借阅记录加载失败，请重试。'), findsOneWidget);
-    expect(find.text('暂无借阅申请'), findsNothing);
+    expect(find.text('暂无待确认的借阅申请'), findsNothing);
     service.failLoad = false;
     await tester.tap(find.text('重试'));
     await tester.pumpAndSettle();
@@ -170,4 +179,85 @@ void main() {
     expect(find.widgetWithText(ElevatedButton, '归还图书'), findsNothing);
     await tester.pumpWidget(const SizedBox.shrink());
   });
+
+  for (final language in AppLanguage.values) {
+    testWidgets('Borrowing tabs separate request and loan states in $language',
+        (tester) async {
+      tester.view.physicalSize = const Size(390, 2400);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      AppLocalization.notifier.value = language;
+      String t(String key) => AppLocalization.tr(key);
+      final service = MemoryBorrowingService()
+        ..requests = [
+          requestFixture(id: 'pending'),
+          requestFixture(
+              id: 'approved', status: 'approved', loanId: 'borrowed'),
+          requestFixture(id: 'cancelled', status: 'cancelled'),
+          requestFixture(id: 'rejected', status: 'rejected'),
+          requestFixture(
+              id: 'expired',
+              expiry: DateTime.now().subtract(const Duration(minutes: 1))),
+        ]
+        ..loans = [
+          loanFixture(
+              id: 'borrowed', due: DateTime.now().add(const Duration(days: 1))),
+          loanFixture(id: 'overdue', status: 'overdue'),
+          loanFixture(id: 'lost', status: 'lost'),
+          loanFixture(id: 'returned', status: 'returned'),
+        ];
+      await tester.pumpWidget(MaterialApp(home: BorrowsPage(service: service)));
+      await tester.pumpAndSettle();
+      expect(find.text(t('loan_pending')), findsOneWidget);
+      for (final status in [
+        'approved',
+        'cancelled',
+        'rejected',
+        'expired',
+        'borrowed',
+        'overdue',
+        'lost',
+        'returned'
+      ]) {
+        expect(find.text(t('loan_$status')), findsNothing);
+      }
+
+      await tester.tap(find.text(t('current_borrow')));
+      await tester.pumpAndSettle();
+      for (final status in ['borrowed', 'overdue', 'lost']) {
+        expect(find.text(t('loan_$status')), findsOneWidget);
+      }
+      for (final status in [
+        'pending',
+        'approved',
+        'cancelled',
+        'rejected',
+        'expired',
+        'returned'
+      ]) {
+        expect(find.text(t('loan_$status')), findsNothing);
+      }
+      expect(find.byKey(const ValueKey('show-pass-approved')), findsOneWidget);
+
+      await tester.tap(find.text(t('history_record')));
+      await tester.pumpAndSettle();
+      for (final status in [
+        'approved',
+        'cancelled',
+        'rejected',
+        'expired',
+        'returned'
+      ]) {
+        expect(find.text(t('loan_$status')), findsOneWidget);
+      }
+      for (final status in ['pending', 'borrowed', 'overdue', 'lost']) {
+        expect(find.text(t('loan_$status')), findsNothing);
+      }
+      expect(find.text(t('loan_show_pass')), findsNothing);
+      expect(find.text(t('loan_cancel_request')), findsNothing);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox.shrink());
+    });
+  }
 }

@@ -4,9 +4,12 @@ import 'package:library_management/data/models/borrow_request_model.dart';
 import 'package:library_management/data/services/borrowing_service.dart';
 
 BorrowRequest requestFixture(
-        {String status = 'pending', String? loanId, DateTime? expiry}) =>
+        {String id = 'request-test',
+        String status = 'pending',
+        String? loanId,
+        DateTime? expiry}) =>
     BorrowRequest(
-      id: 'request-test',
+      id: id,
       bookId: 'book-test',
       pickupCode: '12345678',
       status: status,
@@ -18,16 +21,17 @@ BorrowRequest requestFixture(
           {'id': 'book-test', 'title': '扫码联测图书', 'author': 'Test Author'}),
     );
 
-BorrowRecord loanFixture({String status = 'borrowed'}) => BorrowRecord(
-      id: 'loan-test',
+BorrowRecord loanFixture(
+        {String id = 'loan-test', String status = 'borrowed', DateTime? due}) =>
+    BorrowRecord(
+      id: id,
       userId: 'reader-test',
       bookId: 'book-test',
       borrowedAt: DateTime.now()
           .subtract(const Duration(days: 2))
           .toUtc()
           .toIso8601String(),
-      dueDate: DateTime.now()
-          .subtract(const Duration(hours: 1))
+      dueDate: (due ?? DateTime.now().subtract(const Duration(hours: 1)))
           .toUtc()
           .toIso8601String(),
       returnedAt: status == 'returned'
