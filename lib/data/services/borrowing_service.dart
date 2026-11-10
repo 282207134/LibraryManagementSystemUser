@@ -18,20 +18,20 @@ class BorrowingService {
     required String bookId,
     int days = 30,
   }) async =>
-      Map<String, dynamic>.from(await _supabase.rpc(
+      _supabase.rpc<Map<String, dynamic>>(
         'request_borrow_book',
         params: {'p_book_id': bookId, 'p_days': days},
-      ) as Map);
+      );
 
   Future<Map<String, dynamic>> cancelRequest(String requestId) async =>
-      Map<String, dynamic>.from(await _supabase.rpc(
+      _supabase.rpc<Map<String, dynamic>>(
         'close_borrow_request',
         params: {
           'p_request_id': requestId,
           'p_action': 'cancelled',
           'p_note': null,
         },
-      ) as Map);
+      );
 
   Future<List<BorrowRequest>> getUserRequests(String userId) async {
     final response = await _supabase

@@ -191,6 +191,18 @@ class _BorrowsPageState extends State<BorrowsPage>
             )),
       );
 
+  Widget _card(List<Widget> children) => Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: children,
+          ),
+        ),
+      );
+
+  Widget _detail(String label, String value) => Text('${t(label)}: $value');
+
   Widget _showPass(BorrowRequest request) => OutlinedButton.icon(
         key: ValueKey('show-pass-${request.id}'),
         icon: const Icon(Icons.qr_code),
@@ -206,68 +218,59 @@ class _BorrowsPageState extends State<BorrowsPage>
     final status = request.statusAt(_now);
     final current =
         _loans.any((loan) => loan.id == request.borrowingId && loan.isCurrent);
-    return Card(
-        child: Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        _bookInfo(request.bookId, request.book),
-        _status(status),
-        Text(
-            '${t('loan_request_date')}: ${date(request.createdAt.toIso8601String())}'),
-        if (status == 'pending')
-          Text(
-              '${t('loan_expiry')}: ${date(request.expiresAt.toIso8601String())}'),
-        if (request.reviewNote?.isNotEmpty == true)
-          Text('${t('loan_note')}: ${request.reviewNote}'),
-        if (status == 'pending' || current)
-          Wrap(spacing: 12, children: [
-            _showPass(request),
-            if (status == 'pending')
-              TextButton(
-                onPressed: _action == null ? () => _cancel(request) : null,
-                child: Text(t('loan_cancel_request')),
-              ),
-          ]),
-      ]),
-    ));
+    return _card([
+      _bookInfo(request.bookId, request.book),
+      _status(status),
+      _detail('loan_request_date', date(request.createdAt.toIso8601String())),
+      if (status == 'pending')
+        _detail('loan_expiry', date(request.expiresAt.toIso8601String())),
+      if (request.reviewNote?.isNotEmpty == true)
+        _detail('loan_note', request.reviewNote!),
+      if (status == 'pending' || current)
+        Wrap(spacing: 12, children: [
+          _showPass(request),
+          if (status == 'pending')
+            TextButton(
+              onPressed: _action == null ? () => _cancel(request) : null,
+              child: Text(t('loan_cancel_request')),
+            ),
+        ]),
+    ]);
   }
 
   Widget _loanCard(BorrowRecord loan) {
     final overdue = loan.isOverdueAt(_now);
     final requests = _requests.where((r) => r.borrowingId == loan.id);
-    return Card(
-        child: Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        _bookInfo(loan.bookId, loan.book),
-        _status(overdue ? 'overdue' : loan.status),
-        Text('${t('loan_borrowed_date')}: ${date(loan.borrowedAt)}'),
-        Text(
-            '${t(loan.isCurrent ? 'loan_due' : 'loan_returned_date')}: ${date(loan.isCurrent ? loan.dueDate : loan.returnedAt ?? '')}'),
-        if (loan.isCurrent) ...[
-          Text(
-              '${t(overdue ? 'loan_days_overdue' : 'loan_days_left')}: ${loan.daysFromDue(_now)}'),
-          const SizedBox(height: 12),
-          Text(t('loan_return_hint')),
-          if (requests.isNotEmpty) _showPass(requests.first),
-        ],
-      ]),
-    ));
+    return _card([
+      _bookInfo(loan.bookId, loan.book),
+      _status(overdue ? 'overdue' : loan.status),
+      _detail('loan_borrowed_date', date(loan.borrowedAt)),
+      _detail(loan.isCurrent ? 'loan_due' : 'loan_returned_date',
+          date(loan.isCurrent ? loan.dueDate : loan.returnedAt ?? '')),
+      if (loan.isCurrent) ...[
+        _detail(overdue ? 'loan_days_overdue' : 'loan_days_left',
+            '${loan.daysFromDue(_now)}'),
+        const SizedBox(height: 12),
+        Text(t('loan_return_hint')),
+        if (requests.isNotEmpty) _showPass(requests.first),
+      ],
+    ]);
   }
 
-  Widget _list(List<Widget> cards, String emptyKey) => RefreshIndicator(
+  Widget _list(Iterable<Widget> cards, String emptyKey) => RefreshIndicator(
         onRefresh: _load,
         child: ListView(
           padding: const EdgeInsets.all(16),
           physics: const AlwaysScrollableScrollPhysics(),
-          children: cards.isEmpty
-              ? [
-                  const SizedBox(height: 80),
-                  const Icon(Icons.menu_book_outlined, size: 48),
-                  const SizedBox(height: 16),
-                  Center(child: Text(t(emptyKey))),
-                ]
-              : cards,
+          children: [
+            if (cards.isEmpty) ...[
+              const SizedBox(height: 80),
+              const Icon(Icons.menu_book_outlined, size: 48),
+              const SizedBox(height: 16),
+              Center(child: Text(t(emptyKey))),
+            ] else
+              ...cards,
+          ],
         ),
       );
 
@@ -310,19 +313,10 @@ class _BorrowsPageState extends State<BorrowsPage>
                         child: Text(t('loan_policy'))),
                     Expanded(
                         child: TabBarView(controller: _tabs, children: [
-                      _list(_requests.map(_requestCard).toList(),
-                          'loan_empty_requests'),
-                      _list(
-                          _loans
-                              .where((r) => r.isCurrent)
-                              .map(_loanCard)
-                              .toList(),
+                      _list(_requests.map(_requestCard), 'loan_empty_requests'),
+                      _list(_loans.where((r) => r.isCurrent).map(_loanCard),
                           'loan_empty_current'),
-                      _list(
-                          _loans
-                              .where((r) => !r.isCurrent)
-                              .map(_loanCard)
-                              .toList(),
+                      _list(_loans.where((r) => !r.isCurrent).map(_loanCard),
                           'loan_empty_history'),
                     ])),
                   ]),
