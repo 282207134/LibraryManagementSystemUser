@@ -1,402 +1,330 @@
+import 'dart:async';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:library_management/localization/app_localization.dart';
-import 'package:library_management/data/services/borrowing_service.dart';
-import 'package:library_management/data/services/auth_service.dart';
+import 'package:library_management/data/models/book_model.dart';
 import 'package:library_management/data/models/borrow_record_model.dart';
-import 'package:library_management/utils/image_helper.dart';
+import 'package:library_management/data/models/borrow_request_model.dart';
+import 'package:library_management/data/services/borrowing_service.dart';
+import 'package:library_management/localization/app_localization.dart';
+import 'package:library_management/presentation/widgets/borrowing_ticket.dart';
 import 'package:library_management/utils/error_localization.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:library_management/utils/image_helper.dart';
 
 class BorrowsPage extends StatefulWidget {
-  const BorrowsPage({Key? key}) : super(key: key);
+  const BorrowsPage({super.key, this.service});
+  final BorrowingService? service;
 
   @override
   State<BorrowsPage> createState() => _BorrowsPageState();
 }
 
-class _BorrowsPageState extends State<BorrowsPage> with SingleTickerProviderStateMixin {
-  final _borrowingService = BorrowingService();
-  final _authService = AuthService();
-  List<BorrowRecord> _currentBorrows = [];
-  List<BorrowRecord> _historyBorrows = [];
+class _BorrowsPageState extends State<BorrowsPage>
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
+  late final _service = widget.service ?? BorrowingService();
+  late final TabController _tabs;
+  final Map<String, String?> _covers = {};
+  List<BorrowRequest> _requests = [];
+  List<BorrowRecord> _loans = [];
   bool _loading = true;
-  late TabController _tabController;
-  Map<String, String?> _coverImageUrls = {};
+  String? _error, _action;
+  int _loadVersion = 0;
+  Timer? _clock;
+  DateTime _now = DateTime.now();
+
+  String t(String key) => AppLocalization.tr(key);
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-    _loadBorrows();
+    _tabs = TabController(length: 3, vsync: this);
+    WidgetsBinding.instance.addObserver(this);
+    _clock = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (mounted) setState(() => _now = DateTime.now());
+    });
+    _load();
   }
 
   @override
   void dispose() {
-    _tabController.dispose();
+    WidgetsBinding.instance.removeObserver(this);
+    _clock?.cancel();
+    _tabs.dispose();
     super.dispose();
   }
 
-  Future<void> _loadBorrows() async {
-    setState(() => _loading = true);
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _load();
+  }
+
+  Future<void> _load() async {
+    final version = ++_loadVersion;
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    final userId = _service.currentUserId;
     try {
-      final user = _authService.currentUser;
-      if (user == null) {
-        setState(() {
-          _currentBorrows = [];
-          _historyBorrows = [];
-          _loading = false;
-        });
+      if (userId == null) {
+        _requests = [];
+        _loans = [];
         return;
       }
-
-      final allBorrows = await _borrowingService.getUserBorrowings(user.id);
-      
+      final result = await Future.wait([
+        _service.getUserRequests(userId),
+        _service.getUserBorrowings(userId),
+      ]);
+      final requests = result[0] as List<BorrowRequest>;
+      final loans = result[1] as List<BorrowRecord>;
+      final books = [
+        ...requests.map((r) => r.book),
+        ...loans.map((r) => r.book)
+      ];
+      final covers = <String, String?>{};
+      for (final book in books.whereType<Book>()) {
+        if (book.coverImageUrl == null || covers.containsKey(book.id)) continue;
+        try {
+          covers[book.id] =
+              await ImageHelper.resolveCoverImageUrl(book.coverImageUrl);
+        } catch (_) {
+          covers[book.id] = null;
+        }
+      }
+      if (!mounted ||
+          version != _loadVersion ||
+          userId != _service.currentUserId) {
+        return;
+      }
       setState(() {
-        _currentBorrows = allBorrows
-            .where((b) => b.status == 'borrowed' || b.status == 'overdue')
-            .toList();
-        _historyBorrows = allBorrows
-            .where((b) => b.status == 'returned')
-            .toList();
+        _requests = requests;
+        _loans = loans;
+        _covers
+          ..clear()
+          ..addAll(covers);
+        _now = DateTime.now();
       });
-
-      // 加载封面图片
-      await _loadCoverImages([..._currentBorrows, ..._historyBorrows]);
-    } catch (e) {
-      print('加载借阅记录失败: $e');
+    } catch (_) {
+      if (mounted && version == _loadVersion) {
+        setState(() => _error = t('loan_load_failed'));
+      }
     } finally {
-      setState(() => _loading = false);
+      if (mounted && version == _loadVersion) setState(() => _loading = false);
     }
   }
 
-  Future<void> _loadCoverImages(List<BorrowRecord> records) async {
-    final urls = <String, String?>{};
-    for (final record in records) {
-      if (record.book?.coverImageUrl != null && 
-          !_coverImageUrls.containsKey(record.bookId)) {
-        final resolvedUrl = await ImageHelper.resolveCoverImageUrl(
-          record.book!.coverImageUrl,
-        );
-        urls[record.bookId] = resolvedUrl;
-      }
-    }
-    setState(() {
-      _coverImageUrls.addAll(urls);
-    });
-  }
-
-  Future<void> _handleReturn(String recordId) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('确认归还'),
-        content: const Text('确定要归还这本书吗？'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('取消'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('确认'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed != true) return;
-
+  Future<void> _cancel(BorrowRequest request) async {
+    if (_action != null) return;
+    setState(() => _action = request.id);
     try {
-      final result = await _borrowingService.returnBook(recordId);
-      if (!mounted) return;
-      
-      if (result['success'] == true) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('归还成功！'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        await _loadBorrows();
-      } else {
-        throw Exception(result['error'] ?? '归还失败');
-      }
-    } catch (e) {
-      if (!mounted) return;
-      final errorMessage = ErrorLocalization.getLocalizedErrorMessage(e);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('归还失败: $errorMessage'),
-          backgroundColor: Colors.red,
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(t('loan_cancel_request')),
+          content: Text(t('loan_cancel_confirm')),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text(t('cancel'))),
+            FilledButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: Text(t('confirm'))),
+          ],
         ),
       );
+      if (confirmed != true || !mounted) return;
+      final result = await _service.cancelRequest(request.id);
+      if (result['success'] != true) {
+        throw StateError(result['error'] as String? ?? t('loan_action_failed'));
+      }
+      if (mounted) await _load();
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(ErrorLocalization.getLocalizedErrorMessage(error)),
+      ));
+    } finally {
+      if (mounted) setState(() => _action = null);
     }
   }
 
-  int _getDaysRemaining(String dueDate) {
-    try {
-      final due = DateTime.parse(dueDate);
-      final now = DateTime.now();
-      final diff = due.difference(now).inDays;
-      return diff;
-    } catch (e) {
-      return 0;
-    }
+  String date(String raw) {
+    final parsed = DateTime.tryParse(raw)?.toLocal();
+    if (parsed == null) return '-';
+    String two(int n) => n.toString().padLeft(2, '0');
+    return '${parsed.year}-${two(parsed.month)}-${two(parsed.day)} ${two(parsed.hour)}:${two(parsed.minute)}';
   }
+
+  Widget _bookInfo(String id, Book? book) => InkWell(
+        onTap: () => context.push('/book/$id'),
+        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          SizedBox(
+              width: 48,
+              height: 68,
+              child: _covers[id] == null
+                  ? const Icon(Icons.menu_book, size: 40)
+                  : CachedNetworkImage(
+                      imageUrl: _covers[id]!,
+                      fit: BoxFit.cover,
+                      errorWidget: (_, __, ___) =>
+                          const Icon(Icons.menu_book))),
+          const SizedBox(width: 12),
+          Expanded(
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                Text(book?.title ?? t('loan_unknown_book'),
+                    style: Theme.of(context).textTheme.titleMedium),
+                if (book?.author != null) Text(book!.author),
+              ])),
+        ]),
+      );
+
+  Widget _status(String value) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Text(t('loan_$value'),
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              color: ['overdue', 'expired', 'rejected', 'lost'].contains(value)
+                  ? Theme.of(context).colorScheme.error
+                  : Theme.of(context).colorScheme.primary,
+            )),
+      );
+
+  Widget _showPass(BorrowRequest request) => OutlinedButton.icon(
+        key: ValueKey('show-pass-${request.id}'),
+        icon: const Icon(Icons.qr_code),
+        label: Text(t('loan_show_pass')),
+        onPressed: () async {
+          await showBorrowingTicket(context,
+              code: request.pickupCode, bookTitle: request.book?.title);
+          if (mounted) await _load();
+        },
+      );
+
+  Widget _requestCard(BorrowRequest request) {
+    final status = request.statusAt(_now);
+    final current =
+        _loans.any((loan) => loan.id == request.borrowingId && loan.isCurrent);
+    return Card(
+        child: Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        _bookInfo(request.bookId, request.book),
+        _status(status),
+        Text(
+            '${t('loan_request_date')}: ${date(request.createdAt.toIso8601String())}'),
+        if (status == 'pending')
+          Text(
+              '${t('loan_expiry')}: ${date(request.expiresAt.toIso8601String())}'),
+        if (request.reviewNote?.isNotEmpty == true)
+          Text('${t('loan_note')}: ${request.reviewNote}'),
+        if (status == 'pending' || current)
+          Wrap(spacing: 12, children: [
+            _showPass(request),
+            if (status == 'pending')
+              TextButton(
+                onPressed: _action == null ? () => _cancel(request) : null,
+                child: Text(t('loan_cancel_request')),
+              ),
+          ]),
+      ]),
+    ));
+  }
+
+  Widget _loanCard(BorrowRecord loan) {
+    final overdue = loan.isOverdueAt(_now);
+    final requests = _requests.where((r) => r.borrowingId == loan.id);
+    return Card(
+        child: Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        _bookInfo(loan.bookId, loan.book),
+        _status(overdue ? 'overdue' : loan.status),
+        Text('${t('loan_borrowed_date')}: ${date(loan.borrowedAt)}'),
+        Text(
+            '${t(loan.isCurrent ? 'loan_due' : 'loan_returned_date')}: ${date(loan.isCurrent ? loan.dueDate : loan.returnedAt ?? '')}'),
+        if (loan.isCurrent) ...[
+          Text(
+              '${t(overdue ? 'loan_days_overdue' : 'loan_days_left')}: ${loan.daysFromDue(_now)}'),
+          const SizedBox(height: 12),
+          Text(t('loan_return_hint')),
+          if (requests.isNotEmpty) _showPass(requests.first),
+        ],
+      ]),
+    ));
+  }
+
+  Widget _list(List<Widget> cards, String emptyKey) => RefreshIndicator(
+        onRefresh: _load,
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: cards.isEmpty
+              ? [
+                  const SizedBox(height: 80),
+                  const Icon(Icons.menu_book_outlined, size: 48),
+                  const SizedBox(height: 16),
+                  Center(child: Text(t(emptyKey))),
+                ]
+              : cards,
+        ),
+      );
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
-    final tabCurrent = AppLocalization.tr('current_borrow');
-    final tabHistory = AppLocalization.tr('history_record');
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(AppLocalization.tr('borrows')),
-        elevation: 0,
-        backgroundColor: isDark ? colorScheme.surface : null,
-        foregroundColor: isDark ? colorScheme.onSurface : null,
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(56),
-          child: Container(
-            margin: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: TabBar(
-              controller: _tabController,
-              indicatorSize: TabBarIndicatorSize.tab,
-              dividerColor: Colors.transparent,
-              labelColor: colorScheme.onPrimary,
-              unselectedLabelColor: colorScheme.onSurfaceVariant,
-              indicator: BoxDecoration(
-                color: colorScheme.primary,
-                borderRadius: BorderRadius.circular(9),
-              ),
-              tabs: [
-                Tab(text: tabCurrent),
-                Tab(text: tabHistory),
-              ],
-            ),
+  Widget build(BuildContext context) => Scaffold(
+        appBar: AppBar(
+          title: Text(t('borrows')),
+          actions: [
+            IconButton(
+              tooltip: t('loan_refresh'),
+              onPressed: _loading || _action != null ? null : _load,
+              icon: const Icon(Icons.refresh),
+            )
+          ],
+          bottom: TabBar(
+            controller: _tabs,
+            tabs: [
+              Tab(text: t('loan_requests')),
+              Tab(text: t('current_borrow')),
+              Tab(text: t('history_record'))
+            ],
           ),
         ),
-      ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : TabBarView(
-              controller: _tabController,
-              children: [
-                _buildCurrentBorrows(),
-                _buildBorrowHistory(),
-              ],
-            ),
-    );
-  }
-
-  Widget _buildCurrentBorrows() {
-    if (_currentBorrows.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.book_outlined, size: 64, color: Colors.grey),
-            const SizedBox(height: 16),
-            Text(
-              '暂无借阅中的图书',
-              style: TextStyle(color: Colors.grey, fontSize: 16),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: _currentBorrows.length,
-      itemBuilder: (context, index) {
-        return _buildBorrowCard(_currentBorrows[index], isCurrent: true);
-      },
-    );
-  }
-
-  Widget _buildBorrowHistory() {
-    if (_historyBorrows.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.history, size: 64, color: Colors.grey),
-            const SizedBox(height: 16),
-            Text(
-              '暂无借阅历史',
-              style: TextStyle(color: Colors.grey, fontSize: 16),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: _historyBorrows.length,
-      itemBuilder: (context, index) {
-        return _buildBorrowCard(_historyBorrows[index], isCurrent: false);
-      },
-    );
-  }
-
-  Widget _buildBorrowCard(BorrowRecord record, {required bool isCurrent}) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final book = record.book;
-    final coverUrl = _coverImageUrls[record.bookId] ?? book?.coverImageUrl;
-    final daysRemaining = _getDaysRemaining(record.dueDate);
-    final isOverdue = record.status == 'overdue' || daysRemaining < 0;
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                GestureDetector(
-                  onTap: () => context.push('/book/${record.bookId}'),
-                  child: coverUrl != null
-                      ? ClipRRect(
-                          borderRadius: BorderRadius.circular(4),
-                          child: CachedNetworkImage(
-                            imageUrl: coverUrl,
-                            width: 50,
-                            height: 70,
-                            fit: BoxFit.cover,
-                            placeholder: (context, url) => Container(
-                              width: 50,
-                              height: 70,
-                              color: Colors.grey[300],
-                              child: const Center(child: CircularProgressIndicator()),
-                            ),
-                            errorWidget: (context, url, error) => Container(
-                              width: 50,
-                              height: 70,
-                              color: Colors.grey[300],
-                              child: const Icon(Icons.book),
-                            ),
-                          ),
-                        )
-                      : Container(
-                          width: 50,
-                          height: 70,
-                          color: Colors.grey[300],
-                          child: const Icon(Icons.book),
-                        ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      GestureDetector(
-                        onTap: () => context.push('/book/${record.bookId}'),
-                        child: Text(
-                          book?.title ?? '未知图书',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '作者: ${book?.author ?? '未知'}',
-                        style: TextStyle(color: Colors.grey[600], fontSize: 14),
-                      ),
+        body: _loading
+            ? const Center(child: CircularProgressIndicator())
+            : _error != null
+                ? Center(
+                    child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(mainAxisSize: MainAxisSize.min, children: [
+                      Text(_error!, textAlign: TextAlign.center),
                       const SizedBox(height: 12),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '借阅日期',
-                                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                              ),
-                              Text(
-                                record.borrowedAt.split('T')[0],
-                                style: const TextStyle(fontSize: 14),
-                              ),
-                            ],
-                          ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Text(
-                                isCurrent ? '到期日期' : '归还日期',
-                                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                              ),
-                              Text(
-                                isCurrent
-                                    ? record.dueDate.split('T')[0]
-                                    : record.returnedAt != null
-                                        ? record.returnedAt!.split('T')[0]
-                                        : '-',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: isOverdue
-                                      ? Colors.red
-                                      : colorScheme.onSurface,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      if (isCurrent) ...[
-                        const SizedBox(height: 8),
-                        Text(
-                          isOverdue
-                              ? '已逾期 ${-daysRemaining} 天'
-                              : '剩余 $daysRemaining 天',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: isOverdue ? Colors.red : Colors.green,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            if (isCurrent) ...[
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () => _handleReturn(record.id),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        foregroundColor: Colors.white,
-                      ),
-                      child: Text(AppLocalization.tr('return_book')),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
+                      FilledButton(
+                          onPressed: _load, child: Text(t('loan_retry'))),
+                    ]),
+                  ))
+                : Column(children: [
+                    Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                        child: Text(t('loan_policy'))),
+                    Expanded(
+                        child: TabBarView(controller: _tabs, children: [
+                      _list(_requests.map(_requestCard).toList(),
+                          'loan_empty_requests'),
+                      _list(
+                          _loans
+                              .where((r) => r.isCurrent)
+                              .map(_loanCard)
+                              .toList(),
+                          'loan_empty_current'),
+                      _list(
+                          _loans
+                              .where((r) => !r.isCurrent)
+                              .map(_loanCard)
+                              .toList(),
+                          'loan_empty_history'),
+                    ])),
+                  ]),
+      );
 }

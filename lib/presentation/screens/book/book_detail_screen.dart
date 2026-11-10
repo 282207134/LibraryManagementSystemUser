@@ -9,13 +9,14 @@ import 'package:library_management/data/models/review_model.dart';
 import 'package:library_management/utils/image_helper.dart';
 import 'package:library_management/utils/error_localization.dart';
 import 'package:library_management/presentation/widgets/star_rating.dart';
+import 'package:library_management/presentation/widgets/borrowing_ticket.dart';
+import 'package:library_management/localization/app_localization.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:library_management/config/app_config.dart';
 
 class BookDetailScreen extends StatefulWidget {
   final String bookId;
-  
+
   const BookDetailScreen({Key? key, required this.bookId}) : super(key: key);
 
   @override
@@ -27,12 +28,14 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
   final _borrowingService = BorrowingService();
   final _authService = AuthService();
   final _reviewService = ReviewService();
-  
+
   Book? _book;
   bool _loading = true;
   String? _error;
   String? _coverImageUrl;
-  bool _isBorrowed = false;
+  BookBorrowingState _borrowState = BookBorrowingState.available;
+  bool get _isBorrowed => _borrowState == BookBorrowingState.borrowed;
+  bool get _isPending => _borrowState == BookBorrowingState.pending;
   bool _isFavorite = false;
   bool _borrowing = false;
 
@@ -65,6 +68,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
 
     try {
       final book = await _bookService.getBookById(widget.bookId);
+      if (!mounted) return;
       if (book == null) {
         setState(() {
           _error = '图书不存在';
@@ -77,15 +81,19 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
 
       // 加载封面图片
       if (book.coverImageUrl != null) {
-        final resolvedUrl = await ImageHelper.resolveCoverImageUrl(book.coverImageUrl);
+        final resolvedUrl =
+            await ImageHelper.resolveCoverImageUrl(book.coverImageUrl);
+        if (!mounted) return;
         setState(() => _coverImageUrl = resolvedUrl);
       }
 
       // 检查借阅和收藏状态
       final user = _authService.currentUser;
       if (user != null) {
-        final borrowings = await _borrowingService.getCurrentBorrowings(user.id);
-        _isBorrowed = borrowings.any((b) => b.bookId == widget.bookId);
+        final state = await _borrowingService.getBookBorrowingState(
+            user.id, widget.bookId);
+        if (!mounted) return;
+        _borrowState = state;
 
         final favorites = await AppConfig.supabase
             .from('book_favorites')
@@ -93,13 +101,16 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
             .eq('user_id', user.id)
             .eq('book_id', widget.bookId)
             .maybeSingle();
-        
+        if (!mounted) return;
+
         setState(() {
           _isFavorite = favorites != null;
         });
 
         // 加载用户的评论
-        final review = await _reviewService.getUserReview(widget.bookId, user.id);
+        final review =
+            await _reviewService.getUserReview(widget.bookId, user.id);
+        if (!mounted) return;
         if (review != null) {
           setState(() {
             _userReview = review;
@@ -112,11 +123,12 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
       // 加载所有评论和评分统计
       await _loadReviewsAndStats();
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _error = '加载图书详情失败: $e';
       });
     } finally {
-      setState(() => _loading = false);
+      if (mounted) setState(() => _loading = false);
     }
   }
 
@@ -127,6 +139,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
         _reviewService.getReviews(widget.bookId),
         _reviewService.getBookRatingStats(widget.bookId),
       ]);
+      if (!mounted) return;
 
       setState(() {
         _reviews = results[0] as List<Review>;
@@ -135,11 +148,12 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     } catch (e) {
       print('加载评论失败: $e');
     } finally {
-      setState(() => _reviewLoading = false);
+      if (mounted) setState(() => _reviewLoading = false);
     }
   }
 
   Future<void> _handleBorrow() async {
+    if (_borrowing || _isBorrowed || _isPending) return;
     final user = _authService.currentUser;
     if (user == null) {
       if (!mounted) return;
@@ -154,31 +168,39 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
 
     setState(() => _borrowing = true);
     try {
-      final result = await _borrowingService.borrowBook(
+      final result = await _borrowingService.requestBook(
         bookId: widget.bookId,
-        userId: user.id,
         days: 30,
       );
 
       if (!mounted) return;
-      
+
       if (result['success'] == true) {
+        setState(() => _borrowState = BookBorrowingState.pending);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('借阅成功！'),
+          SnackBar(
+            content: Text(AppLocalization.tr('loan_requested')),
             backgroundColor: Colors.green,
           ),
         );
         await _loadBookDetail();
+        if (!mounted) return;
+        final code = result['pickup_code'] as String?;
+        if (code != null) {
+          await showBorrowingTicket(context,
+              code: code, bookTitle: _book?.title);
+          if (mounted) await _loadBookDetail();
+        }
       } else {
-        throw Exception(result['error'] ?? '借阅失败');
+        throw Exception(
+            result['error'] ?? AppLocalization.tr('loan_action_failed'));
       }
     } catch (e) {
       if (!mounted) return;
       final errorMessage = ErrorLocalization.getLocalizedErrorMessage(e);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('借阅失败: $errorMessage'),
+          content: Text(errorMessage),
           backgroundColor: Colors.red,
         ),
       );
@@ -213,12 +235,10 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
           );
         }
       } else {
-        await AppConfig.supabase
-            .from('book_favorites')
-            .insert({
-              'user_id': user.id,
-              'book_id': widget.bookId,
-            });
+        await AppConfig.supabase.from('book_favorites').insert({
+          'user_id': user.id,
+          'book_id': widget.bookId,
+        });
         if (mounted) {
           setState(() => _isFavorite = true);
           ScaffoldMessenger.of(context).showSnackBar(
@@ -251,7 +271,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
       );
 
       if (!mounted) return;
-      
+
       if (review != null) {
         setState(() {
           _userReview = review;
@@ -305,9 +325,10 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
 
     setState(() => _reviewLoading = true);
     try {
-      final success = await _reviewService.deleteReview(_userReview!.id, user.id);
+      final success =
+          await _reviewService.deleteReview(_userReview!.id, user.id);
       if (!mounted) return;
-      
+
       if (success) {
         setState(() {
           _userReview = null;
@@ -441,7 +462,8 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                           const SizedBox(height: 4),
                           Text(
                             '分类: ${_book!.category}',
-                            style: TextStyle(color: Colors.blue[600], fontSize: 12),
+                            style: TextStyle(
+                                color: Colors.blue[600], fontSize: 12),
                           ),
                         ],
                         const SizedBox(height: 8),
@@ -460,7 +482,8 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                             const SizedBox(width: 8),
                             Text(
                               '库存: ${_book!.quantity}',
-                              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                              style: TextStyle(
+                                  fontSize: 12, color: Colors.grey[600]),
                             ),
                           ],
                         ),
@@ -478,7 +501,10 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                 children: [
                   Expanded(
                     child: ElevatedButton.icon(
-                      onPressed: _isBorrowed || _book!.availableQuantity == 0 || _borrowing
+                      onPressed: _isBorrowed ||
+                              _isPending ||
+                              _book!.availableQuantity <= 0 ||
+                              _borrowing
                           ? null
                           : _handleBorrow,
                       icon: _borrowing
@@ -488,7 +514,11 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
                           : const Icon(Icons.bookmark_add),
-                      label: Text(_isBorrowed ? '已借阅' : '借阅'),
+                      label: Text(AppLocalization.tr(_isBorrowed
+                          ? 'loan_borrowed'
+                          : _isPending
+                              ? 'loan_pending'
+                              : 'loan_request')),
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
@@ -496,6 +526,22 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                   ),
                 ],
               ),
+            ),
+
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              child: Column(children: [
+                Text(AppLocalization.tr('loan_policy')),
+                if (_isPending || _isBorrowed)
+                  TextButton.icon(
+                    icon: const Icon(Icons.receipt_long),
+                    label: Text(AppLocalization.tr('loan_view_borrows')),
+                    onPressed: () async {
+                      await context.push('/borrows');
+                      if (mounted) _loadBookDetail();
+                    },
+                  ),
+              ]),
             ),
 
             const SizedBox(height: 24),
@@ -514,15 +560,15 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  if (_book!.isbn != null)
-                    _buildInfoRow('ISBN', _book!.isbn!),
+                  if (_book!.isbn != null) _buildInfoRow('ISBN', _book!.isbn!),
                   if (_book!.publisher != null && _book!.publisher!.isNotEmpty)
                     _buildInfoRow('出版社', _book!.publisher!),
                   if (_book!.publicationYear != null)
                     _buildInfoRow('出版年份', _book!.publicationYear.toString()),
                   _buildInfoRow('总数量', _book!.quantity.toString()),
                   _buildInfoRow('可借数量', _book!.availableQuantity.toString()),
-                  if (_book!.description != null && _book!.description!.isNotEmpty) ...[
+                  if (_book!.description != null &&
+                      _book!.description!.isNotEmpty) ...[
                     const SizedBox(height: 16),
                     const Text(
                       '简介',
@@ -561,7 +607,8 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                   const SizedBox(height: 16),
 
                   // 评分统计
-                  if (_ratingStats != null && _ratingStats!.totalReviews > 0) ...[
+                  if (_ratingStats != null &&
+                      _ratingStats!.totalReviews > 0) ...[
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
@@ -633,7 +680,8 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                                 setState(() {
                                   _showReviewForm = true;
                                   _selectedRating = _userReview!.rating;
-                                  _commentController.text = _userReview!.comment ?? '';
+                                  _commentController.text =
+                                      _userReview!.comment ?? '';
                                 });
                               },
                               child: const Text('修改评论'),
@@ -706,10 +754,12 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                               children: [
                                 Expanded(
                                   child: ElevatedButton(
-                                    onPressed: _reviewLoading || _selectedRating == 0
-                                        ? null
-                                        : _handleSubmitReview,
-                                    child: Text(_reviewLoading ? '提交中...' : '提交评论'),
+                                    onPressed:
+                                        _reviewLoading || _selectedRating == 0
+                                            ? null
+                                            : _handleSubmitReview,
+                                    child: Text(
+                                        _reviewLoading ? '提交中...' : '提交评论'),
                                   ),
                                 ),
                                 if (_userReview != null) ...[
@@ -719,7 +769,8 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                                       setState(() {
                                         _showReviewForm = false;
                                         _selectedRating = _userReview!.rating;
-                                        _commentController.text = _userReview!.comment ?? '';
+                                        _commentController.text =
+                                            _userReview!.comment ?? '';
                                       });
                                     },
                                     child: const Text('取消'),
@@ -762,7 +813,8 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
                                     review.userFullName ??

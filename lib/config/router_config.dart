@@ -12,6 +12,7 @@ import 'package:library_management/presentation/screens/home/home_screen.dart';
 import 'package:library_management/presentation/screens/splash/splash_screen.dart';
 // 导入图书详情界面
 import 'package:library_management/presentation/screens/book/book_detail_screen.dart';
+import 'package:library_management/presentation/screens/home/pages/borrows_page.dart';
 
 // 路由提供者,管理应用的所有路由配置
 final routerProvider = Provider<GoRouter>((ref) {
@@ -43,6 +44,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/home',
         name: 'home',
         builder: (context, state) => const HomeScreen(),
+      ),
+      // 借阅记录与凭证
+      GoRoute(
+        path: '/borrows',
+        builder: (context, state) => const BorrowsPage(),
       ),
       // 图书详情页路由,带参数id
       GoRoute(

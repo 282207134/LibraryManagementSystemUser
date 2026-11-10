@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 // 导入Hive本地数据库库
 import 'package:hive_flutter/hive_flutter.dart';
+import 'borrowing_strings.dart';
 
 // 应用语言枚举,支持中文、英文、日文
 enum AppLanguage { zh, en, ja }
@@ -59,7 +60,7 @@ class AppLocalization {
   static String tr(String key) {
     final lang = notifier.value;
     final map = _strings[key];
-    if (map == null) return key;
+    if (map == null) return borrowingStrings[key]?[lang.index] ?? key;
     return map[lang] ?? map[AppLanguage.zh] ?? key;
   }
 

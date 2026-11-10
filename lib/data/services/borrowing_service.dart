@@ -1,92 +1,78 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:library_management/config/app_config.dart';
 import 'package:library_management/data/models/borrow_record_model.dart';
+import 'package:library_management/data/models/borrow_request_model.dart';
+
+enum BookBorrowingState { available, pending, borrowed }
 
 class BorrowingService {
-  static final BorrowingService _instance = BorrowingService._internal();
-  factory BorrowingService() => _instance;
-  BorrowingService._internal();
+  BorrowingService({SupabaseClient? client}) : _client = client;
+  final SupabaseClient? _client;
+  SupabaseClient get _supabase => _client ?? AppConfig.supabase;
+  String? get currentUserId => _supabase.auth.currentUser?.id;
 
-  SupabaseClient get _supabase => AppConfig.supabase;
+  static const _bookFields = '*, books(id,title,author,cover_image_url)';
 
-  // 借阅图书（使用数据库函数）
-  Future<Map<String, dynamic>> borrowBook({
+  // Requests use the authenticated reader, without reserving stock.
+  Future<Map<String, dynamic>> requestBook({
     required String bookId,
-    required String userId,
     int days = 30,
-  }) async {
-    final response = await _supabase.rpc('borrow_book', params: {
-      'p_book_id': bookId,
-      'p_user_id': userId,
-      'p_days': days,
-    });
+  }) async =>
+      Map<String, dynamic>.from(await _supabase.rpc(
+        'request_borrow_book',
+        params: {'p_book_id': bookId, 'p_days': days},
+      ) as Map);
 
-    return response as Map<String, dynamic>;
+  Future<Map<String, dynamic>> cancelRequest(String requestId) async =>
+      Map<String, dynamic>.from(await _supabase.rpc(
+        'close_borrow_request',
+        params: {
+          'p_request_id': requestId,
+          'p_action': 'cancelled',
+          'p_note': null,
+        },
+      ) as Map);
+
+  Future<List<BorrowRequest>> getUserRequests(String userId) async {
+    final response = await _supabase
+        .from('borrowing_requests')
+        .select(_bookFields)
+        .eq('user_id', userId)
+        .order('created_at', ascending: false);
+    return response.map(BorrowRequest.fromJson).toList();
   }
 
-  // 归还图书（使用数据库函数）
-  Future<Map<String, dynamic>> returnBook(String borrowingId) async {
-    final response = await _supabase.rpc('return_book', params: {
-      'p_borrowing_id': borrowingId,
-    });
-
-    return response as Map<String, dynamic>;
-  }
-
-  // 获取用户的借阅记录
   Future<List<BorrowRecord>> getUserBorrowings(String userId) async {
     final response = await _supabase
         .from('borrowing_records')
-        .select('''
-          *,
-          books (
-            id,
-            title,
-            author,
-            cover_image_url
-          )
-        ''')
+        .select(_bookFields)
         .eq('user_id', userId)
         .order('borrowed_at', ascending: false);
-
-    return (response as List)
-        .map((json) => BorrowRecord.fromJson(json as Map<String, dynamic>))
-        .toList();
+    return response.map(BorrowRecord.fromJson).toList();
   }
 
-  // 获取当前借阅中的图书
-  Future<List<BorrowRecord>> getCurrentBorrowings(String userId) async {
-    final response = await _supabase
-        .from('borrowing_records')
-        .select('''
-          *,
-          books (
-            id,
-            title,
-            author,
-            cover_image_url
-          )
-        ''')
-        .eq('user_id', userId)
-        .inFilter('status', ['borrowed', 'overdue'])
-        .order('borrowed_at', ascending: false);
-
-    return (response as List)
-        .map((json) => BorrowRecord.fromJson(json as Map<String, dynamic>))
-        .toList();
-  }
-
-  // 续借
-  Future<void> renewBorrow(String borrowingId) async {
-    // 如果数据库有续借函数，使用它；否则更新 due_date
-    await _supabase
-        .from('borrowing_records')
-        .update({
-          'due_date': DateTime.now()
-              .add(const Duration(days: 30))
-              .toIso8601String(),
-        })
-        .eq('id', borrowingId);
+  Future<BookBorrowingState> getBookBorrowingState(
+    String userId,
+    String bookId,
+  ) async {
+    final results = await Future.wait([
+      _supabase
+          .from('borrowing_records')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('book_id', bookId)
+          .inFilter('status', ['borrowed', 'overdue']).limit(1),
+      _supabase
+          .from('borrowing_requests')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('book_id', bookId)
+          .eq('status', 'pending')
+          .gt('expires_at', DateTime.now().toUtc().toIso8601String())
+          .limit(1),
+    ]);
+    if (results[0].isNotEmpty) return BookBorrowingState.borrowed;
+    if (results[1].isNotEmpty) return BookBorrowingState.pending;
+    return BookBorrowingState.available;
   }
 }
-
