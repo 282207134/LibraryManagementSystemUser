@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:library_management/data/services/auth_service.dart';
 import 'package:library_management/localization/app_localization.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -19,9 +20,8 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<void> _navigateToNext() async {
     await Future.delayed(const Duration(seconds: 2));
     if (mounted) {
-      // Check if user is logged in
-      // For now, navigate to login
-      context.go('/login');
+      // Supabase restores the existing session before the app starts.
+      context.go(AuthService().isAuthenticated ? '/home' : '/login');
     }
   }
 
